@@ -3,6 +3,7 @@
 #include "file_operations.h"
 #include <string.h>
 #include "table_id_gen.h"
+#include <assert.h>
 
 /* 
 Create empty table
@@ -28,7 +29,116 @@ void add_column(struct table_schema* table, char* name, enum data_type type) {
     // somehow append column to the end
 }
 
-#define TABLE_OF_TABLES_COL_NUM 3
+static int cmp_vals(void* a, enum data_type typeA, void* b, enum data_type typeB) {
+    assert(typeA == typeB);
+    switch(typeA) {
+        case INTEGER:
+            return *(int*)a - *(int*)b;
+        case BOOLEAN: 
+            return *(bool*)a - *(bool*)b;
+        case FLOAT:
+            return *(float*)a - *(float*)b;
+        case STRING:
+            return strcmp((char*)a, (char*)b);
+    }
+}
+
+static int cmp_column(struct column column, void* b, enum data_type typeB) {
+    return cmp_vals(column.value, column.dataType, b, typeB);
+}
+
+#define TABLE_OF_TABLES_COL_NUM 5
+
+static bool check_select_condition(struct column column, struct select_condition condition) {
+    int result = cmp_column(column, condition.value, condition.type);
+    switch (condition.operator) {
+        case EQUAL:
+            return result == 0;
+        case LESS:
+            return result < 0;
+        case GREATER:
+            return result > 0;
+        default:
+            return false;
+    }
+}
+
+void do_select(size_t offset, struct file_handle* file, struct select_query query, struct select_query_result_item** result) {
+    void* data = malloc(DEAFULT_PAGE_SIZE);
+    struct page_header page_header = {0};
+    struct maybe_page current_page = { .exists=true, .offset=offset };
+
+    struct select_query_result_item* current = *result;
+
+    while(current_page.exists) {
+        read_page_binary(file, current_page.offset, data);
+        read_page_header(data, &page_header);
+        struct item_data rows[page_header.count];
+        for (int i = 0; i < page_header.count; ++i) {
+            struct column_data col[TABLE_OF_TABLES_COL_NUM];
+            rows[i].columns = col;
+        }
+        parse_page_data(data, page_header, rows);
+
+        for (int i = 0; i < page_header.count; ++i) {
+            for (int j = 0; j < rows[i].columns->length; ++j) {
+                bool matches = true;
+                for (int k = 0; k < query.cond_count; ++k) {
+                    if (!check_select_condition(rows[i].columns[j], query.conditions[k])) {
+                        matches = false;
+                        break;
+                    }
+                }
+                if (!matches) {
+                    break;
+                }
+
+                if (current == *result) {
+                    current = malloc(sizeof(struct select_query_result_item));
+                } else {
+                    current->next = malloc(sizeof(struct select_query_result_item));
+                    current = current->next;
+                }
+
+                
+            }
+        }
+
+
+
+        current_page = page_header.next_page;
+    };
+}
+
+void select_from_table(struct file_handle* file, struct select_query query) {
+    void* data = malloc(DEAFULT_PAGE_SIZE);
+    struct page_header page_header = {0};
+    struct maybe_page current_page = { .exists=true, .offset=file->header.table_of_tables };
+    
+    while(current_page.exists) {
+        read_page_binary(file, current_page.offset, data);
+        read_page_header(data, &page_header);
+        struct item_data rows[page_header.count];
+        for (int i = 0; i < page_header.count; ++i) {
+            struct column_data col[TABLE_OF_TABLES_COL_NUM];
+            rows[i].columns = col;
+        }
+        parse_page_data(data, page_header, rows);
+
+        for (int i = 0; i < page_header.count; ++i) {
+            for (int k = 0; k < rows[i].columns->length; ++k) {
+                if () {
+
+                }
+            }
+        }
+
+
+
+        current_page = page_header.next_page;
+    };
+
+}
 
 #define TABLE_OF_TABLES_NAME_COL 1
 #define TABLE_OF_TABLES_ID_COL 0
@@ -39,7 +149,63 @@ void add_column(struct table_schema* table, char* name, enum data_type type) {
 #define COLUMN_TABLE_TABLE_ID 2
 #define COLUMN_TABLE_TYPE 1
 
-static void select_from_table(FILE* file, const char* const table_name, char** cols) {
+static void find_table(struct file_handle* file, const char* const table_name, struct table_schema* table) {
+    void* data = malloc(DEAFULT_PAGE_SIZE);
+    struct page_header page_header = {0};
+    struct maybe_page current_page = { .exists=true, .offset=file->header.table_of_tables };
+    while(current_page.exists) {
+        read_page_binary(file, current_page.offset, data);
+        read_page_header(data, &page_header);
+        struct item_data rows[page_header.count];
+        for (int i = 0; i < page_header.count; ++i) {
+            struct column_data col[TABLE_OF_TABLES_COL_NUM];
+            rows[i].columns = col;
+        }
+        parse_page_data(data, page_header, rows);
+
+        for (int i = 0; i < page_header.count; ++i) {
+            if (strcmp(rows[i].columns[TABLE_OF_TABLES_NAME_COL].value, table_name) == 0) {
+                table->id = *(size_t*)(rows[i].columns[TABLE_OF_TABLES_ID_COL].value);
+                table->name = malloc(rows[i].columns[TABLE_OF_TABLES_NAME_COL].length);
+                *table->name = *(char*)(rows[i].columns[TABLE_OF_TABLES_NAME_COL].value);
+                table->size = *(size_t*)(rows[i].columns[TABLE_OF_TABLES_COL_NUM].value);
+                table->next_page = *(size_t*)(rows[i].columns[TABLE_OF_TABLES_TABLE_OFFSET].value);
+                table->columns = malloc(sizeof(struct column_data) * table->size);
+
+                void* col_page = malloc(DEAFULT_PAGE_SIZE);
+                struct page_header col_page_header = {0};
+
+                struct maybe_page current_col_page = { .exists=true, .offset=file->header.table_of_columns };
+                size_t p = 0;
+
+                while(current_col_page.exists && p < table->size) {
+                    read_page_binary(file, current_col_page.offset, col_page);
+                    read_page_header(col_page, &col_page_header);
+                    struct item_data column_rows[col_page_header.count];
+                    for (int i = 0; i < col_page_header.count; ++i) {
+                        struct column_data columns[TABLE_OF_TABLES_COL_NUM];
+                        column_rows[i].columns = columns;
+                    }
+                    parse_page_data(col_page, col_page_header, column_rows);
+
+                    for (int i = 0; i < col_page_header.count; ++i) {
+                        if (*(size_t*)column_rows[i].columns[COLUMN_TABLE_TABLE_ID].value == table->id) {
+                            table->columns[p].name = malloc(column_rows[i].columns[COLUMN_TABLE_NAME].length);
+                            *(table->columns[p].name) = *(char*)column_rows[i].columns[COLUMN_TABLE_NAME].value;
+                            table->columns[p].type = *(enum data_type*)column_rows[i].columns[COLUMN_TABLE_TYPE].value;
+                            p += 1;
+                        }   
+                    }
+                    current_col_page = col_page_header.next_page;
+                };
+                free(col_page);
+                free(data);
+
+                return;
+            }   
+        }
+        current_page = page_header.next_page;
+    };
 
 }
 
@@ -116,7 +282,8 @@ Save table to database
 table - table to be saved
 */
 void save_table(char* file_name, struct table_schema* table) {
-    FILE* file = open_file(file_name, "rw+");
+    struct file_handle* file = open_file(file_name, "rw+");
+
     struct table_schema schema = {0};
     find_table(file, table->name, &table);
     if (table != NULL) {

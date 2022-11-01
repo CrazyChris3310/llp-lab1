@@ -19,6 +19,14 @@ static enum operation_status close_file(FILE* f) {
     return SUCCESS;
 }
 
+struct file_handle* open_file(const char* const filename, const char* const mode) {
+    struct file_handle* file = malloc(sizeof(struct file_handle));
+    // TODO: handle exceptions and statuses
+    open_file(file->file, filename, mode);
+    read_file_header(file->file, &file->header);
+    return file;
+}
+
 static enum operation_status read_file_header(FILE* file, struct file_header* header) {
     fseek(file, 0, SEEK_SET);
     size_t read = fread(header, sizeof(struct file_header), 1, file);

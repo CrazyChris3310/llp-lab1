@@ -37,6 +37,7 @@ struct column {
 };
 
 struct item_data {
+    size_t len;
     struct column* columns;
 };
 
@@ -44,5 +45,37 @@ struct file_handle {
     FILE* file;
     struct file_header header;
 };
+
+enum comparison_operator {
+    EQUAL, GREATER, LESS
+};
+
+struct select_condition {
+    char* column;
+    enum comparison_operator operator;
+    void* value;
+    enum data_type type;
+};
+
+struct select_query {
+    char* table_name;
+    char** columns;
+    size_t col_count;
+    struct select_condition* conditions;
+    size_t cond_count;
+};
+
+struct result_column {
+    enum data_type dataType;
+    void* value;
+    struct column* next;
+};
+
+struct select_query_result_item {
+    struct result_column* first;
+    struct select_query_result_item* next;
+};
+
+
 
 #endif
