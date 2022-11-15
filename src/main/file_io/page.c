@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
-#include "util/my_string.h"
+#include <stdlib.h>
+#include "../util/my_string.h"
 
 struct PossiblePage {
     bool exists;
@@ -16,20 +17,24 @@ struct PageHeader {
 };
 
 struct Page {
-    struct PageHeader header;
+    // struct PageHeader header;
     void* data;
 };
 
 // maybe better to allocate page in a heap
-struct Page allocatePage(size_t page_size) {
+struct Page* allocatePage(size_t page_size) {
+    struct Page* page = malloc(sizeof(struct Page));
     void* data = malloc(page_size - sizeof(struct PageHeader));
-    return (struct Page){ .header = {0}, .data = data };
+    page->data = data;
+    return page;
 }
 
-void deallocate(struct Page* page) {
+void deallocatePage(struct Page* page) {
     free(page->data);
+    free(page);
 }
 
+// all offses considering header
 int64_t getInt(struct Page* page, size_t offset) {
     return *(int64_t*)(page->data + offset);
 }

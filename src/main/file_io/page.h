@@ -3,12 +3,14 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include "util/my_string.h"
+#include "../util/my_string.h"
 
-struct Page;
+struct Page {
+    void* data;
+};
 
-struct Page allocatePage(size_t page_size);
-void deallocate(struct Page* page);
+struct Page* allocatePage(size_t page_size);
+void deallocatePage(struct Page* page);
 
 int64_t getInt(struct Page* page, size_t offset);
 float getFloat(struct Page* page, size_t offset);
