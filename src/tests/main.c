@@ -3,4 +3,5 @@
 int main() {
     testReadAndWriteToSinglePage();
     testReadAndWriteToPageFileReopen();
+    testDataNotLost();
 }
