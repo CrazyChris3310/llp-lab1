@@ -9,5 +9,6 @@ struct String {
 };
 
 int compareStrings(struct String a, struct String b);
+int equals(struct String a, struct String b);
 
 #endif

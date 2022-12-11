@@ -11,6 +11,7 @@ struct Page* allocatePage(size_t page_size) {
     void* data = malloc(page_size);
     page->data = data;
     page->isDirty = false;
+    page->header = data;
     return page;
 }
 

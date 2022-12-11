@@ -1,7 +1,9 @@
 #include "string.h"
 #include "data_type.h"
 #include "schema.h"
+#include <stdlib.h>
 #include <stdbool.h>
+#include "file_io/page.h"
 
 struct Schema* createSchema(char* name) {
     struct Schema* schema = malloc(sizeof(struct Schema));
@@ -9,11 +11,21 @@ struct Schema* createSchema(char* name) {
     schema->lastField = NULL;
     schema->slotSize = sizeof(bool);
     schema->name = name;
+    return schema;
 }
 
-void addField(struct Schema* schema, struct String name, enum DataType type, size_t len) {
+void destroySchema(struct Schema* schema) {
+    clearSchema(schema);
+    free(schema);
+}
+
+// FIXME:
+void addField(struct Schema* schema, char* name, enum DataType type, size_t len) {
     struct Field* field = malloc(sizeof(struct Field));
-    field->name = name;
+    size_t length = strlen(name);
+    char* colName = malloc(sizeof(length));
+    strcpy(colName, name);
+    field->name = (struct String){.value = colName, .lenght = length };
     field->type = type;
     field->len = len;
     field->next = NULL;
@@ -27,10 +39,12 @@ void addField(struct Schema* schema, struct String name, enum DataType type, siz
     schema->slotSize += len;
 }
 
+// FIXME:
 void clearSchema(struct Schema* schema) {
     struct Field* current = schema->firstField;
     while (current != NULL) {
         struct Field* next = current->next;
+        free(current->name.value);
         free(current);
         current = next;
     }
@@ -38,20 +52,20 @@ void clearSchema(struct Schema* schema) {
     schema->lastField = NULL;
 }
 
-void addIntField(struct Schema* schema, struct String name) {
+void addIntField(struct Schema* schema, char* name) {
     addField(schema, name, INTEGER, sizeof(int64_t));
 }
 
-void addFloatField(struct Schema* schema, struct String name) {
+void addFloatField(struct Schema* schema, char* name) {
     addField(schema, name, FLOAT, sizeof(float));
 }
 
-void addStringField(struct Schema* schema, struct String name, size_t len) {
+void addStringField(struct Schema* schema, char* name, size_t len) {
     addField(schema, name, STRING, len); 
     schema->slotSize += sizeof(size_t);  // bytes containing length of the string
 }
 
-void addBooleanField(struct Schema* schema, struct String name) {
+void addBooleanField(struct Schema* schema, char* name) {
     addField(schema, name, BOOLEAN, sizeof(bool));
 }
 
@@ -60,22 +74,24 @@ struct Field* getFieldList(struct Schema* schema) {
 }
 
 
-size_t getFieldOffset(struct Schema* schema, struct String field) {
+struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field) {
     struct Field* current = schema->firstField;
     while (current != NULL) {
         if (compareStrings(current->name, field) == 0) {
-            return current->offset;
+            return (struct PossibleOffset){ .exists=true, .offset=current->offset };
         }
         current = current->next;
     }
+    return (struct PossibleOffset){ .exists=false };
 }
 
-size_t getFieldLength(struct Schema* schema, struct String field) {
+struct PossibleOffset getFieldLength(struct Schema* schema, struct String field) {
     struct Field* current = schema->firstField;
     while (current != NULL) {
         if (compareStrings(current->name, field) == 0) {
-            return current->len;
+            return (struct PossibleOffset){ .exists=true, .offset=current->len };
         }
         current = current->next;
     }
+    return (struct PossibleOffset){ .exists=false };
 }

@@ -3,18 +3,20 @@
 #include <stdlib.h>
 #include "file_manager.h"
 
-static int8_t readFileHeader(struct FileManager* fm) {
+static void readFileHeader(struct FileManager* fm) {
     if (fm->isNew) {
         fm->header.freePages = (struct PossibleOffset){ .exists=false };
         fm->header.tableOfColumns = (struct PossibleOffset){ .exists=false };
         fm->header.tableOfTables = (struct PossibleOffset){ .exists=false };
+        fm->header.isNew = true;
+        fm->header.next_table_id = 0;
     } else {
         fseek(fm->file, 0, SEEK_SET);
         fread(&fm->header, sizeof(struct FileHeader), 1, fm->file);
     }
 }
 
-static int8_t writeFileHeader(struct FileManager* fm) {
+static void writeFileHeader(struct FileManager* fm) {
     fseek(fm->file, 0, SEEK_SET);
     fwrite(&fm->header, sizeof(struct FileHeader), 1, fm->file);
 }
@@ -54,20 +56,32 @@ int8_t writePage(struct FileManager* fm, size_t blockId, struct Page* page) {
     return blocks_written == 1 ? 0 : 1;
 }
 
+static size_t writeNewBlockOfData(struct FileManager *fm, void* data) {
+    fseek(fm->file, 0, SEEK_END);
+    size_t block_cnt = (ftell(fm->file) - sizeof(struct FileHeader)) / fm->blockSize;
+    fseek(fm->file, 0, SEEK_END);
+    fwrite(data, fm->blockSize, 1, fm->file);
+    return block_cnt;
+}
+
 // not sure if we should just use ftell or divide by blocks and go to the last position
 size_t addNewBlock(struct FileManager* fm) {
-    fseek(fm->file, 0, SEEK_END);
-    size_t block_cnt = ftell(fm->file) / fm->blockSize;
-    char data[fm->blockSize];
-    fseek(fm->file, sizeof(struct FileHeader) + block_cnt * fm->blockSize, SEEK_SET);
-    fwrite(data, fm->blockSize, 1, fm->file);
-
-    return block_cnt;
-
+    // fseek(fm->file, 0, SEEK_END);
+    // size_t block_cnt = (ftell(fm->file) - sizeof(struct FileHeader)) / fm->blockSize;
     // char data[fm->blockSize];
     // fseek(fm->file, 0, SEEK_END);
-    // fwrite(data, fm->blockSize, 1, data);
+    // fwrite(data, fm->blockSize, 1, fm->file);
+
+    // return block_cnt;
+    
+    char data[fm->blockSize];
+    return writeNewBlockOfData(fm, data);
 }
+
+size_t writeNewPage(struct FileManager *fm, struct Page* page) {
+    return writeNewBlockOfData(fm, page->data);
+}
+
 
 size_t getFileLength(struct FileManager* fm) {
     fseek(fm->file, 0, SEEK_END);

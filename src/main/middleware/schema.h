@@ -21,16 +21,17 @@ struct Schema {
 };
 
 struct Schema* createSchema(char* name);
+void destroySchema(struct Schema* schema);
 void clearSchema(struct Schema* schema);
 
-void addField(struct Schema* schema, struct String name, enum DataType type, size_t len);
-void addIntField(struct Schema* schema, struct String name);
-void addFloatField(struct Schema* schema, struct String name);
-void addStringField(struct Schema* schema, struct String name, size_t len);
-void addBooleanField(struct Schema* schema, struct String name);
+void addField(struct Schema* schema, char* name, enum DataType type, size_t len);
+void addIntField(struct Schema* schema, char* name);
+void addFloatField(struct Schema* schema, char* name);
+void addStringField(struct Schema* schema, char* name, size_t len);
+void addBooleanField(struct Schema* schema, char* name);
 struct Field* getFieldList(struct Schema* schema);
 
-size_t getFieldOffset(struct Schema* schema, struct String field);
-size_t getFieldLength(struct Schema* schema, struct String field);
+struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field);
+struct PossibleOffset getFieldLength(struct Schema* schema, struct String field);
 
 #endif

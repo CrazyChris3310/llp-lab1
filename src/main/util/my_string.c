@@ -9,3 +9,7 @@ int compareStrings(struct String a, struct String b) {
     }
     return 0;
 }
+
+int equals(struct String a, struct String b) {
+    return compareStrings(a, b) == 0;
+}

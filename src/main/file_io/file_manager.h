@@ -9,6 +9,8 @@ struct FileHeader {
     struct PossibleOffset tableOfTables;
     struct PossibleOffset tableOfColumns;
     struct PossibleOffset freePages;
+    bool isNew;
+    size_t next_table_id;
 };
 
 struct FileManager {
@@ -18,17 +20,16 @@ struct FileManager {
     struct FileHeader header;
 };
 
-// handle errors
 struct FileManager* createFileManager(char* filename, size_t blockSize);
 
 void closeFileManager(struct FileManager* manager);
 
-// handle errors
 int8_t readPage(struct FileManager* fm, size_t blockId, struct Page* page);
 
 int8_t writePage(struct FileManager* fm, size_t blockId, struct Page* page);
 
-// not sure if we should just use ftell or divide by blocks and go to the last position
 size_t addNewBlock(struct FileManager* fm);
+size_t writeNewPage(struct FileManager *fm, struct Page* page);
 
+size_t getFileLength(struct FileManager* fm);
 #endif
