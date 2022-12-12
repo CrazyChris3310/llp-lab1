@@ -18,6 +18,7 @@ struct Schema {
     struct Field* firstField;
     struct Field* lastField;
     size_t slotSize;
+    int64_t startBlock;
 };
 
 struct Schema* createSchema(char* name);

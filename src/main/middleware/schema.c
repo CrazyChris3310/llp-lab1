@@ -23,9 +23,10 @@ void destroySchema(struct Schema* schema) {
 void addField(struct Schema* schema, char* name, enum DataType type, size_t len) {
     struct Field* field = malloc(sizeof(struct Field));
     size_t length = strlen(name);
-    char* colName = malloc(sizeof(length));
-    strcpy(colName, name);
-    field->name = (struct String){.value = colName, .lenght = length };
+    char* realName = malloc(length + 1);
+    memcpy(realName, name, length);
+    realName[length] = '\0';
+    field->name = (struct String){.value = realName, .lenght = length };
     field->type = type;
     field->len = len;
     field->next = NULL;
@@ -60,8 +61,12 @@ void addFloatField(struct Schema* schema, char* name) {
     addField(schema, name, FLOAT, sizeof(float));
 }
 
+size_t bitsToBytes(size_t bits) {
+    return bits / 8 + 1;
+}
+
 void addStringField(struct Schema* schema, char* name, size_t len) {
-    addField(schema, name, STRING, len); 
+    addField(schema, name, STRING, len + 1); 
     schema->slotSize += sizeof(size_t);  // bytes containing length of the string
 }
 

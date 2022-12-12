@@ -28,7 +28,7 @@ int8_t readPage(struct FileManager* fm, size_t blockId, struct Page* page);
 
 int8_t writePage(struct FileManager* fm, size_t blockId, struct Page* page);
 
-size_t addNewBlock(struct FileManager* fm);
+size_t addNewBlock(struct FileManager* fm, struct PageHeader* header);
 size_t writeNewPage(struct FileManager *fm, struct Page* page);
 
 size_t getFileLength(struct FileManager* fm);

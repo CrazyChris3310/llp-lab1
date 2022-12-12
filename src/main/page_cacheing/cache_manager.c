@@ -56,7 +56,7 @@ struct CachedPage* requestCachedPage(struct CacheManager* cm, size_t blockId) {
         // better to return error here
         return NULL;
     }
-    if (!buf->page->isDirty && buf->blockId == blockId) {
+    if (buf->page->isDirty) {
         writePage(cm->fileManager, buf->blockId, buf->page);
     }
     readPage(cm->fileManager, blockId, buf->page);

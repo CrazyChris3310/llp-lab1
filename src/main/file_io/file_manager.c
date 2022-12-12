@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "file_manager.h"
+
+static void writeFileHeader(struct FileManager* fm);
 
 static void readFileHeader(struct FileManager* fm) {
     if (fm->isNew) {
@@ -29,14 +32,20 @@ struct FileManager* createFileManager(char* filename, size_t blockSize) {
     if (file == NULL) {
         file = fopen(filename, "wb+");
         manager->isNew = true;
+    } else {
+        manager->isNew = false;
     }
     manager->file = file;
     readFileHeader(manager);
+    if (manager->isNew) {
+        writeFileHeader(manager);
+    }
     return manager;
 }
 
 // TODO: better to rename to destroy
 void closeFileManager(struct FileManager* manager) {
+    writeFileHeader(manager);
     fclose(manager->file);
     free(manager);
 }
@@ -64,17 +73,9 @@ static size_t writeNewBlockOfData(struct FileManager *fm, void* data) {
     return block_cnt;
 }
 
-// not sure if we should just use ftell or divide by blocks and go to the last position
-size_t addNewBlock(struct FileManager* fm) {
-    // fseek(fm->file, 0, SEEK_END);
-    // size_t block_cnt = (ftell(fm->file) - sizeof(struct FileHeader)) / fm->blockSize;
-    // char data[fm->blockSize];
-    // fseek(fm->file, 0, SEEK_END);
-    // fwrite(data, fm->blockSize, 1, fm->file);
-
-    // return block_cnt;
-    
+size_t addNewBlock(struct FileManager* fm, struct PageHeader* header) {
     char data[fm->blockSize];
+    memcpy(data, header, sizeof(struct PageHeader));
     return writeNewBlockOfData(fm, data);
 }
 

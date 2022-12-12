@@ -23,6 +23,8 @@ struct PageRecord* createPageRecord(struct CacheManager* cm, struct Schema* sche
     record->blockId = blockId;
     record->schema = schema;
     record->cacheManager = cm;
+    // WTF???
+    record->id = -1;
     return record;
 }
 
@@ -141,13 +143,14 @@ void deleteRecord(struct PageRecord *record) {
 
 static bool searchAfter(struct PageRecord* record, bool flag) {
     while (recordIsValid(record)) {
+        record->id += 1;
         struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
         bool res = getPageBool(cachedPage->page, record->id * record->schema->slotSize);
         releaseCachedPage(record->cacheManager, cachedPage); 
         if (res == flag) {
             return true;
         }
-        record->id += 1;
+        // record->id += 1;
     }
     return false;
 }
@@ -161,13 +164,14 @@ bool insertNextRecord(struct PageRecord* record) {
     if (found) {
         setTakenFlag(record, USED);
     }
-    return false;
+    return found;
 }
 
 void clearAllRecords(struct PageRecord* record) {
     struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
     while (recordIsValid(record)) {
         setPageBool(cachedPage->page, record->id * record->schema->slotSize, EMPTY);
+        record->id += 1;
     }
     releaseCachedPage(record->cacheManager, cachedPage); 
     record->id = 0;

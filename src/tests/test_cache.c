@@ -16,15 +16,15 @@ void testDataNotLost() {
     struct CacheManager* cm = createCacheManager(fm, 1);
 
     struct CachedPage* page = requestCachedPage(cm, 1);
-    setFloat(page->page, 37, 0.4);
+    setPageFloat(page->page, 37, 0.4);
     releaseCachedPage(cm, page);
 
     requestCachedPage(cm, 3);
     releaseCachedPage(cm, page);
 
     page = requestCachedPage(cm, 1);
-    assert(cmpFloat(0.4, getFloat(page->page, 37)) == 0);
-    printf("Value received: %f\n", getFloat(page->page, 37));
+    assert(cmpFloat(0.4, getPageFloat(page->page, 37)) == 0);
+    printf("Value received: %f\n", getPageFloat(page->page, 37));
     releaseCachedPage(cm, page);
 
     destroyCacheManager(cm);
