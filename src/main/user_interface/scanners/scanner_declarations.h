@@ -6,6 +6,8 @@
 #include "user_interface/write_scan.h"
 
 struct ScanInterface {
+    void(*reset)(void* ptr);
+
     bool(*goToNextRecord)(void* ptr);
     void(*insertNextRecord)(void* ptr);
 
@@ -31,6 +33,7 @@ struct TableScanner {
     struct CacheManager* cacheManager;
     struct PageRecord* pageRecord;
     size_t blockId;
+    size_t startBlock;
 };
 
 struct SelectScanner {

@@ -2,6 +2,7 @@
 #define MY_STRING_H
 
 #include <inttypes.h>
+#include <string.h>
 
 struct String {
     size_t lenght;

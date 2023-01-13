@@ -6,29 +6,11 @@
 #include "user_interface/write_scan.h"
 #include "util/my_string.h"
 #include "middleware/schema.h"
+#include "middleware/table_manager.h"
 
 #define MAX_COL_NAME 60
 
-#define TABLE_OF_TABLES_NAME "table_of_tables"
-#define TABLE_OF_TABLES_TABLE_NAME_COLUMN "name"
-#define TABLE_FIRST_PAGE_COLUMN_NAME "first_page"
-#define TABLE_RECORD_SIZE_COLUMN_NAME "record_size"
-#define TABLE_OF_TABLES_ID_COLUMN "id"
-
-#define COLUMN_TABLE_NAME "table_of_columns"
-#define COLUMN_TABLE_TABLE_ID_COLUMN "table_id"
-#define COLUMN_TABLE_NAME_COLUMN "name"
-#define COLUMN_TABLE_OFFSET_COLUMN "offset"
-#define COLUMN_TABLE_LENGTH_COLUMN "length"
-#define COLUMN_TABLE_TYPE_COLUMN "type"
-
-struct TableManager {
-    struct CacheManager* cacheManager;
-    struct Schema* tableOfTables;
-    struct Schema* columnTable;
-};
-
-void createTable(struct TableManager* tm, struct Schema* schema);
+void createDatabaseTable(struct TableManager* tm, struct Schema* schema);
 
 struct TableManager* createTableManager(struct CacheManager* cacheManager) {
     struct TableManager* tableManager = malloc(sizeof(struct TableManager));
@@ -47,11 +29,7 @@ struct TableManager* createTableManager(struct CacheManager* cacheManager) {
     addIntField(schema, COLUMN_TABLE_TYPE_COLUMN);
     addStringField(schema, COLUMN_TABLE_NAME_COLUMN, MAX_COL_NAME);
     tableManager->columnTable = schema;
-
-    // if (isNew) {
-    //     createTable(tableManager, tableManager->tableOfTables);
-    //     createTable(tableManager, tableManager->columnTable);
-    // }
+    
     return tableManager;
 }
 
@@ -66,13 +44,16 @@ static int64_t getNextTableId(struct TableManager* tm) {
 }
 
 // Need ID counter
-void createTable(struct TableManager* tm, struct Schema* schema) {
+// TODO: need to show error when table already exists
+void createDatabaseTable(struct TableManager* tm, struct Schema* schema) {
     struct PossibleOffset po = tm->cacheManager->fileManager->header.tableOfTables;
     struct TableScanner* tableScanner = createTableScanner(tm->cacheManager, tm->tableOfTables, !po.exists, po.offset);
 
     if (!po.exists) {
         tm->cacheManager->fileManager->header.tableOfTables.exists = true;
         tm->cacheManager->fileManager->header.tableOfTables.offset = getCurrentBlock(tableScanner);
+    } else {
+        
     }
 
     int64_t tableId = getNextTableId(tm);
@@ -134,6 +115,7 @@ struct Schema* findTableSchema(struct TableManager* tm, char* tableName) {
     destroy((struct ScanInterface*)tableScanner);
 
     struct Schema* schema = createSchema(tableName);
+    schema->shouldClear = true;
     struct TableScanner* colScanner = createTableScanner(tm->cacheManager, tm->columnTable, false, tm->cacheManager->fileManager->header.tableOfColumns.offset);
     while(next((struct ScanInterface*)colScanner)) {
         if (getInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TABLE_ID_COLUMN) == tableId) {

@@ -23,6 +23,7 @@ static bool __selectScanNextFunction(void* ptr);
 static void __insertRecordIntoSelectScanner(void* ptr);
 
 void __destroySelectScanner(void* ptr);
+static void __resetSelectScanner(void* ptr);
 
 
 struct SelectScanner* createSelectScanner(struct ScanInterface* scan, struct Predicate predicate) {
@@ -37,6 +38,7 @@ struct SelectScanner* createSelectScanner(struct ScanInterface* scan, struct Pre
     scanner->scanInterface.getFloat = __getFloatFromSelectScanner;
     scanner->scanInterface.getInt = __getIntegerFromSelectScanner;
     scanner->scanInterface.getString = __getStringFromSelectScanner;
+    scanner->scanInterface.getField = __getFieldFromSelectScanner;
 
     scanner->scanInterface.setBool = __setBoolToSelectScanner;
     scanner->scanInterface.setInt = __setIntegerToSelectScanner;
@@ -45,6 +47,7 @@ struct SelectScanner* createSelectScanner(struct ScanInterface* scan, struct Pre
     scanner->scanInterface.setVarchar = __setVarcharToSelectScanner;
 
     scanner->scanInterface.destroy = __destroySelectScanner;
+    scanner->scanInterface.reset = __resetSelectScanner;
 
     return scanner;
 }
@@ -151,4 +154,9 @@ static bool __selectScanNextFunction(void* ptr) {
 static void __insertRecordIntoSelectScanner(void* ptr) {
     struct SelectScanner* scanner = (struct SelectScanner*)ptr;
     insert(scanner->tableScanner);
+}
+
+static void __resetSelectScanner(void* ptr) {
+    struct SelectScanner* scanner = (struct SelectScanner*)ptr;
+    scanner->tableScanner->reset(scanner->tableScanner);
 }

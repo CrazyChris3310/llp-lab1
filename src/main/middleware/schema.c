@@ -11,6 +11,7 @@ struct Schema* createSchema(char* name) {
     schema->lastField = NULL;
     schema->slotSize = sizeof(bool);
     schema->name = name;
+    schema->shouldClear = false;
     return schema;
 }
 
@@ -42,6 +43,10 @@ void addField(struct Schema* schema, char* name, enum DataType type, size_t len)
 
 // FIXME:
 void clearSchema(struct Schema* schema) {
+    if (schema == NULL) {
+        return;
+    }
+
     struct Field* current = schema->firstField;
     while (current != NULL) {
         struct Field* next = current->next;

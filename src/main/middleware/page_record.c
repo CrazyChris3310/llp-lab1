@@ -136,7 +136,7 @@ void setStringToRecord(struct PageRecord* record, struct String field, struct St
 }
 
 static bool recordIsValid(struct PageRecord* record) {
-    return (record->id + 1) * record->schema->slotSize <= record->cacheManager->fileManager->blockSize;
+    return (record->id + 1) * record->schema->slotSize <= record->cacheManager->fileManager->blockSize - sizeof(struct PageHeader);
 }
 
 static void setTakenFlag(struct PageRecord *record, bool value) {

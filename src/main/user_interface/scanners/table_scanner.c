@@ -21,11 +21,13 @@ int64_t __getIntegerFromTableScanner(void* ptr, char* field);
 float __getFloatFromTableScanner(void* ptr, char* field);
 bool __getBoolFromTableScanner(void* ptr, char* field);
 struct String __getStringFromTableScanner(void* ptr, char* field);
+struct Constant __getFieldFromTableScanner(void* ptr, char* field) ;
 
 static void moveScannerToBlock(struct TableScanner* scanner, size_t blockId);
 static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurrent);
 
 void __destroyTableScanner(void* ptr);
+static void __resetTableScanner(void* ptr);
 
 /*
     search for the first page of given table in file and set current scanner before first record of this table
@@ -35,11 +37,13 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
     scanner->cacheManager = cm;
     scanner->schema = schema;
     scanner->blockId = blockStart;
+    scanner->startBlock = blockStart;
     scanner->pageRecord = NULL;
 
     if (isNew) {
-        moveScannerToNewBlock(scanner, false);
-        // schema->startBlock = newBlockId;
+        size_t newBlockId = moveScannerToNewBlock(scanner, false);
+        schema->startBlock = newBlockId;
+        scanner->startBlock = newBlockId;
     } else {
         moveScannerToBlock(scanner, blockStart);
     }
@@ -51,6 +55,7 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
     scanner->scanInterface.getFloat = __getFloatFromTableScanner;
     scanner->scanInterface.getInt = __getIntegerFromTableScanner;
     scanner->scanInterface.getString = __getStringFromTableScanner;
+    scanner->scanInterface.getField = __getFieldFromTableScanner;
 
     scanner->scanInterface.setBool = __setBoolToTableScanner;
     scanner->scanInterface.setInt = __setIntegerToTableScanner;
@@ -59,12 +64,16 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
     scanner->scanInterface.setVarchar = __setVarcharToTableScanner;
 
     scanner->scanInterface.destroy = __destroyTableScanner;
+    scanner->scanInterface.reset = __resetTableScanner;
 
     return scanner;
 }
 
 void __destroyTableScanner(void* ptr) {
     struct TableScanner* scanner = (struct TableScanner*)ptr;
+    if (scanner->schema->shouldClear) {
+        destroySchema(scanner->schema);
+    }
     destroyPageRecord(scanner->pageRecord);
     free(scanner);
 }
@@ -209,7 +218,6 @@ static bool __tableScanNextFunction(void* ptr) {
             return false;
         }
         moveScannerToNextBlock(scanner);
-        // moveScannerToBlock(scanner, scanner->blockId + 1);
         found = goToNextRecord(scanner->pageRecord);
     }
     return true;
@@ -223,8 +231,12 @@ static void __insertRecordIntoTableScanner(void* ptr) {
             moveScannerToNewBlock(scanner, true);
         } else {
             moveScannerToNextBlock(scanner);
-            // moveScannerToBlock(scanner, scanner->blockId + 1);
         }
         found = insertNextRecord(scanner->pageRecord);
     }
+}
+
+static void __resetTableScanner(void* ptr) {
+    struct TableScanner* scanner = (struct TableScanner*)ptr;
+    moveScannerToBlock(scanner, scanner->startBlock);
 }

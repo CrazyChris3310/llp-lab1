@@ -19,6 +19,7 @@ struct Schema {
     struct Field* lastField;
     size_t slotSize;
     int64_t startBlock;
+    bool shouldClear;
 };
 
 struct Schema* createSchema(char* name);

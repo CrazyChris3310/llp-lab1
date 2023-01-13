@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "util/my_string.h"
 #include "page.h"
@@ -25,19 +26,31 @@ static size_t getRealOffset(size_t offset) {
 }
 
 int64_t getPageInt(struct Page* page, size_t offset) {
-    return *(int64_t*)(page->data + getRealOffset(offset));
+    int64_t result;
+    memcpy(&result, page->data + getRealOffset(offset), sizeof(result));
+    return result;
+    // return *(int64_t*)(page->data + getRealOffset(offset));
 }
 
 size_t getPageSizeT(struct Page* page, size_t offset) {
-    return *(size_t*)(page->data + getRealOffset(offset));
+    size_t result;
+    memcpy(&result, page->data + getRealOffset(offset), sizeof(result));
+    return result;
+    // return *(size_t*)(page->data + getRealOffset(offset));
 }
 
 float getPageFloat(struct Page* page, size_t offset) {
-    return *(float*)(page->data + getRealOffset(offset));
+    float result;
+    memcpy(&result, page->data + getRealOffset(offset), sizeof(result));
+    return result;
+    // return *(float*)(page->data + getRealOffset(offset));
 }
 
 bool getPageBool(struct Page* page, size_t offset) {
-    return *(bool*)(page->data + getRealOffset(offset));
+    bool result;
+    memcpy(&result, page->data + getRealOffset(offset), sizeof(result));
+    return result;
+    // return *(bool*)(page->data + getRealOffset(offset));
 }
 
 struct String getPageString(struct Page* page, size_t offset) {
@@ -49,12 +62,14 @@ struct String getPageString(struct Page* page, size_t offset) {
 
 void setPageInt(struct Page* page, size_t offset, int64_t value) {
     page->isDirty = true;
-    *(int64_t*)(page->data + getRealOffset(offset)) = value;
+    // *(int64_t*)(page->data + getRealOffset(offset)) = value;
+    memcpy(page->data + getRealOffset(offset), &value, sizeof(value));
 }
 
 void setPageSizeT(struct Page* page, size_t offset, size_t value) {
     page->isDirty = true;
-    *(size_t*)(page->data + getRealOffset(offset)) = value;
+    // *(size_t*)(page->data + getRealOffset(offset)) = value;
+    memcpy(page->data + getRealOffset(offset), &value, sizeof(value));
 }
 
 void setPageFloat(struct Page* page, size_t offset, float value) {
@@ -64,7 +79,8 @@ void setPageFloat(struct Page* page, size_t offset, float value) {
 
 void setPageBool(struct Page* page, size_t offset, bool value) {
     page->isDirty = true;
-    *(bool*)(page->data + getRealOffset(offset)) = value;
+    // *(bool*)(page->data + getRealOffset(offset)) = value;
+    memcpy(page->data + getRealOffset(offset), &value, sizeof(value));
 }
 
 // maybe replaced with copyString() function
@@ -75,6 +91,7 @@ void setPageString(struct Page* page, size_t offset, struct String value) {
     for (size_t i = 0; i < value.lenght; ++i) {
         str_dest[i] = value.value[i];
     }
+    // memcpy(str_dest, value.value, value.lenght);
 }
 
 uint8_t* getRawData(struct Page* page, size_t offset) {
