@@ -29,7 +29,7 @@ struct Database* openDatabase(char* filename) {
 void closeDatabase(struct Database* db) {
     destroyTableManager(db->tableManager);
     destroyCacheManager(db->cacheManager);
-    closeFileManager(db->fileManager);
+    destoryFileManager(db->fileManager);
     free(db);
 }
 

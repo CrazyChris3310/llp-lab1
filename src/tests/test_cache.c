@@ -28,5 +28,5 @@ void testDataNotLost() {
     releaseCachedPage(cm, page);
 
     destroyCacheManager(cm);
-    closeFileManager(fm);
+    destoryFileManager(fm);
 }

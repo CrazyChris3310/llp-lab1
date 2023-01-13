@@ -24,7 +24,7 @@ void writeFileHeader(struct FileManager* fm);
 
 struct FileManager* createFileManager(char* filename, size_t blockSize);
 
-void closeFileManager(struct FileManager* manager);
+void destoryFileManager(struct FileManager* manager);
 
 int8_t readPage(struct FileManager* fm, size_t blockId, struct Page* page);
 int8_t writePage(struct FileManager* fm, size_t blockId, struct Page* page);

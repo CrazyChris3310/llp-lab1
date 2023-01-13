@@ -25,7 +25,7 @@ void testReadAndWriteToSinglePage() {
     printf("String read: %s\n", getPageString(page, position).value);
     printf("Integer read: %" PRId64 "\n", getPageInt(page, pos2));
     deallocatePage(page);
-    closeFileManager(fm);
+    destoryFileManager(fm);
 }
 
 void testReadAndWriteToPageFileReopen() {
@@ -39,7 +39,7 @@ void testReadAndWriteToPageFileReopen() {
     setPageInt(page, pos2, 794);
     writePage(fm, 2, page);
     deallocatePage(page);
-    closeFileManager(fm);
+    destoryFileManager(fm);
 
     fm = createFileManager("database", DEAFULT_PAGE_SIZE);
     page = allocatePage(fm->blockSize);
@@ -48,5 +48,5 @@ void testReadAndWriteToPageFileReopen() {
     assert(getPageInt(page, pos2) == 794);
     assert(compareStrings(getPageString(page, position), str) == 0);
     deallocatePage(page);
-    closeFileManager(fm);
+    destoryFileManager(fm);
 }
