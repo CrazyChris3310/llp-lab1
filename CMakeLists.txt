@@ -15,7 +15,11 @@ file(GLOB_RECURSE C_FILES_TESTS CONFIGURE_DEPENDS src/tests/*.c)
 file(GLOB_RECURSE H_FILES_TESTS CONFIGURE_DEPENDS src/tests/*.h)
 
 add_compile_options(
-  -g -Wall 
+  # -pedantic-errors
+  -Wall -Werror
+  -g3
+  -O0
+  -fsanitize=address,undefined,leak
 )
 
 add_library(${PROJECT_NAME} STATIC ${C_FILES_LIB} ${H_FILES_LIB})
@@ -23,7 +27,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/main)
 
 add_executable(${PROJECT_NAME}-tests ${C_FILES_TESTS} ${H_FILES_TESTS})
 target_include_directories(${PROJECT_NAME}-tests PUBLIC src/tests)
-target_link_libraries(${PROJECT_NAME}-tests ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}-tests -fsanitize=address,undefined,leak ${PROJECT_NAME})
 
 add_custom_target(testenv
   COMMAND ${CMAKE_COMMAND} -E make_directory testenv)

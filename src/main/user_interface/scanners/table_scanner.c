@@ -7,6 +7,7 @@
 #include "page_cacheing/cache_manager.h"
 #include "middleware/page_record.h"
 #include "scanner_declarations.h"
+#include "user_interface/predicates.h"
 
 static bool __tableScanNextFunction(void* ptr);
 static void __insertRecordIntoTableScanner(void* ptr);
@@ -23,6 +24,8 @@ struct String __getStringFromTableScanner(void* ptr, char* field);
 
 static void moveScannerToBlock(struct TableScanner* scanner, size_t blockId);
 static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurrent);
+
+void __destroyTableScanner(void* ptr);
 
 /*
     search for the first page of given table in file and set current scanner before first record of this table
@@ -41,24 +44,27 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
         moveScannerToBlock(scanner, blockStart);
     }
 
-    scanner->goToNextRecord = __tableScanNextFunction;
-    scanner->insertNextRecord = __insertRecordIntoTableScanner;
+    scanner->scanInterface.goToNextRecord = __tableScanNextFunction;
+    scanner->scanInterface.insertNextRecord = __insertRecordIntoTableScanner;
 
-    scanner->getBool = __getBoolFromTableScanner;
-    scanner->getFloat = __getFloatFromTableScanner;
-    scanner->getInt = __getIntegerFromTableScanner;
-    scanner->getString = __getStringFromTableScanner;
+    scanner->scanInterface.getBool = __getBoolFromTableScanner;
+    scanner->scanInterface.getFloat = __getFloatFromTableScanner;
+    scanner->scanInterface.getInt = __getIntegerFromTableScanner;
+    scanner->scanInterface.getString = __getStringFromTableScanner;
 
-    scanner->setBool = __setBoolToTableScanner;
-    scanner->setInt = __setIntegerToTableScanner;
-    scanner->setFloat = __setFloatToTableScanner;
-    scanner->setString = __setStringToTableScanner;
-    scanner->setVarchar = __setVarcharToTableScanner;
+    scanner->scanInterface.setBool = __setBoolToTableScanner;
+    scanner->scanInterface.setInt = __setIntegerToTableScanner;
+    scanner->scanInterface.setFloat = __setFloatToTableScanner;
+    scanner->scanInterface.setString = __setStringToTableScanner;
+    scanner->scanInterface.setVarchar = __setVarcharToTableScanner;
+
+    scanner->scanInterface.destroy = __destroyTableScanner;
 
     return scanner;
 }
 
-void destroyTableScanner(struct TableScanner* scanner) {
+void __destroyTableScanner(void* ptr) {
+    struct TableScanner* scanner = (struct TableScanner*)ptr;
     destroyPageRecord(scanner->pageRecord);
     free(scanner);
 }
@@ -87,6 +93,31 @@ bool __getBoolFromTableScanner(void* ptr, char* field) {
 struct String __getStringFromTableScanner(void* ptr, char* field) {
     struct TableScanner* scanner = (struct TableScanner*)ptr;
     return getStringFromRecord(scanner->pageRecord, (struct String){.lenght = strlen(field), .value = field});
+}
+
+struct Constant __getFieldFromTableScanner(void* ptr, char* field) {
+    struct TableScanner* scanner = (struct TableScanner*)ptr;
+    void* data = getFieldFromRecord(scanner->pageRecord, (struct String){.lenght = strlen(field), .value = field});
+    struct Constant constant;
+    enum DataType type = getFieldType(scanner->schema, (struct String){.lenght = strlen(field), .value = field});
+    constant.type = type;
+    switch (type) {
+        case INT:
+            constant.value.intVal = *(int64_t*)data;
+            break;
+        case FLOAT:
+            constant.value.floatVal = *(float*)data;
+            break;
+        case BOOL:
+            constant.value.boolVal = *(bool*)data;
+            break;
+        case STRING:
+            constant.value.stringVal = ((struct String*)data)->value;
+            break;
+        default:
+            break;
+    }
+    return constant;
 }
 
 // setters only for update

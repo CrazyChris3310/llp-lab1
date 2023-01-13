@@ -16,6 +16,7 @@ struct CacheManager* createCacheManager(struct FileManager* fileManager, size_t 
 
 // FIXME: maybe should free also fileManager
 void destroyCacheManager(struct CacheManager* cacheManager) {
+    flushAllPages(cacheManager);
     free(cacheManager->pagePool);
     free(cacheManager);
 }
@@ -23,7 +24,9 @@ void destroyCacheManager(struct CacheManager* cacheManager) {
 void flushAllPages(struct CacheManager* cacheManager) {
     for (size_t i = 0; i < cacheManager->poolSize; ++i) {
         struct CachedPage buf = cacheManager->pagePool[i];
-        writePage(cacheManager->fileManager, buf.blockId, buf.page);
+        if (buf.page->isDirty) {
+            writePage(cacheManager->fileManager, buf.blockId, buf.page);
+        }
     }
 }
 

@@ -4,8 +4,6 @@
 #include <string.h>
 #include "file_manager.h"
 
-static void writeFileHeader(struct FileManager* fm);
-
 static void readFileHeader(struct FileManager* fm) {
     if (fm->isNew) {
         fm->header.freePages = (struct PossibleOffset){ .exists=false };
@@ -19,7 +17,7 @@ static void readFileHeader(struct FileManager* fm) {
     }
 }
 
-static void writeFileHeader(struct FileManager* fm) {
+void writeFileHeader(struct FileManager* fm) {
     fseek(fm->file, 0, SEEK_SET);
     fwrite(&fm->header, sizeof(struct FileHeader), 1, fm->file);
 }
@@ -75,7 +73,9 @@ static size_t writeNewBlockOfData(struct FileManager *fm, void* data) {
 
 size_t addNewBlock(struct FileManager* fm, struct PageHeader* header) {
     char data[fm->blockSize];
-    memcpy(data, header, sizeof(struct PageHeader));
+    for (size_t i = 0; i < sizeof(*header); i++) {
+        data[i] = *((char*)(header) + i);
+    }
     return writeNewBlockOfData(fm, data);
 }
 

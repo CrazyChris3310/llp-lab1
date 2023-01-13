@@ -54,7 +54,7 @@ void clearSchema(struct Schema* schema) {
 }
 
 void addIntField(struct Schema* schema, char* name) {
-    addField(schema, name, INTEGER, sizeof(int64_t));
+    addField(schema, name, INT, sizeof(int64_t));
 }
 
 void addFloatField(struct Schema* schema, char* name) {
@@ -71,7 +71,7 @@ void addStringField(struct Schema* schema, char* name, size_t len) {
 }
 
 void addBooleanField(struct Schema* schema, char* name) {
-    addField(schema, name, BOOLEAN, sizeof(bool));
+    addField(schema, name, BOOL, sizeof(bool));
 }
 
 struct Field* getFieldList(struct Schema* schema) {
@@ -99,4 +99,15 @@ struct PossibleOffset getFieldLength(struct Schema* schema, struct String field)
         current = current->next;
     }
     return (struct PossibleOffset){ .exists=false };
+}
+
+enum DataType getFieldType(struct Schema* schema, struct String field) {
+    struct Field* current = schema->firstField;
+    while (current != NULL) {
+        if (compareStrings(current->name, field) == 0) {
+            return current->type;
+        }
+        current = current->next;
+    }
+    return -1;
 }

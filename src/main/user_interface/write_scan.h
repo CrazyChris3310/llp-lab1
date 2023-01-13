@@ -1,14 +1,18 @@
-#ifndef READ_SCAN_H
-#define READ_SCAN_H
+#ifndef WRITE_SCAN_H
+#define WRITE_SCAN_H
 
 #include <inttypes.h>
 #include <stdbool.h>
 #include "util/my_string.h"
 
-void setInteger(void* scanner, int64_t value);
-void setFloat(void* scanner, float value);
-void setBoolean(void* scanner, bool value);
-void setString(void* scanner, char* value);
-void setVarchar(void* scanner, struct String value);
+struct ScanInterface;
+
+void insert(struct ScanInterface* scanner);
+
+void setInt(struct ScanInterface* scanner, char* field, int64_t value);
+void setFloat(struct ScanInterface* scanner, char* field, float value);
+void setBool(struct ScanInterface* scanner, char* field, bool value);
+void setString(struct ScanInterface* scanner, char* field, struct String value);
+void setVarchar(struct ScanInterface* scanner, char* field, char* value);
 
 #endif

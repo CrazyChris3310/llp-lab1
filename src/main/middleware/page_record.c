@@ -64,6 +64,14 @@ float getFloatFromRecord(struct PageRecord* record, struct String field) {
     return result;
 }
 
+void* getFieldFromRecord(struct PageRecord* record, struct String field) {
+    struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
+    size_t offset = calculateRecordFieldOffset(cachedPage->page, record->schema, record->id, field);
+    void* result = getRawData(cachedPage->page, offset);
+    releaseCachedPage(record->cacheManager, cachedPage);
+    return result;
+}
+
 static size_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, size_t recordId, struct String field) {
     struct PossibleOffset po = getFieldOffset(schema, field);
     if (po.exists) {
@@ -170,9 +178,10 @@ bool insertNextRecord(struct PageRecord* record) {
 void clearAllRecords(struct PageRecord* record) {
     struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
     while (recordIsValid(record)) {
-        setPageBool(cachedPage->page, record->id * record->schema->slotSize, EMPTY);
         record->id += 1;
+        setPageBool(cachedPage->page, record->id * record->schema->slotSize, EMPTY);
+        // record->id += 1;
     }
     releaseCachedPage(record->cacheManager, cachedPage); 
-    record->id = 0;
+    record->id = -1;
 }

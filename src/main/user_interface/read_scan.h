@@ -4,10 +4,19 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include "util/my_string.h"
+#include "user_interface/predicates.h"
 
-int64_t getInteger(void* scanner);
-float getFloat(void* scanner);
-bool getBoolean(void* scanner);
-struct String getString(void* scanner);
+struct ScanInterface;
+
+bool next(struct ScanInterface* scanner);
+
+int64_t getInt(struct ScanInterface* scanner, char* field);
+float getFloat(struct ScanInterface* scanner, char* field);
+bool getBool(struct ScanInterface* scanner, char* field);
+struct String getString(struct ScanInterface* scanner, char* field);
+struct Constant getField(struct ScanInterface* scanner, char* field);
+
+// destroy given scanners and all inner scanners
+void destroy(struct ScanInterface* scanner);
 
 #endif

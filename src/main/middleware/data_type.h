@@ -1,12 +1,12 @@
 #ifndef DATA_TYPES_H
 #define DATA_TYPES_H
 
-enum DataType { INTEGER, FLOAT, STRING, BOOLEAN };
+enum DataType { INT, FLOAT, STRING, BOOL };
 
 #define typename(x) _Generic((x), \
-    int:  INTEGER, \
+    int:  INT, \
     float:   FLOAT, \
     char*: STRING, \
-    bool: BOOLEAN)
+    bool: BOOL)
 
 #endif

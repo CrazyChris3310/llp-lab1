@@ -20,7 +20,8 @@ void destroyPageRecord(struct PageRecord* record);
 int64_t getIntFromRecord(struct PageRecord* record, struct String field);
 struct String getStringFromRecord(struct PageRecord* record, struct String field);
 bool getBoolFromRecord(struct PageRecord* record, struct String field);
-float getFloatFromRecord(struct PageRecord* record, struct String field) ;
+float getFloatFromRecord(struct PageRecord* record, struct String field);
+void* getFieldFromRecord(struct PageRecord* record, struct String field);
 
 void setIntToRecord(struct PageRecord* record, struct String field, int64_t value);
 void setFloatToRecord(struct PageRecord* record, struct String field, float value);

@@ -34,5 +34,6 @@ struct Field* getFieldList(struct Schema* schema);
 
 struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field);
 struct PossibleOffset getFieldLength(struct Schema* schema, struct String field);
+enum DataType getFieldType(struct Schema* schema, struct String field);
 
 #endif

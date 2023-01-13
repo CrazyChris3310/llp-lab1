@@ -19,7 +19,7 @@ struct PageHeader {
 
 struct Page {
     struct PageHeader* header;
-    void* data;
+    uint8_t* data;
     bool isDirty;
 };
 
@@ -38,6 +38,6 @@ void setPageFloat(struct Page* page, size_t offset, float value);
 void setPageBool(struct Page* page, size_t offset, bool value);
 void setPageString(struct Page* page, size_t offset, struct String value);
 
-void* getRawData(struct Page* page, size_t offset);
+uint8_t* getRawData(struct Page* page, size_t offset);
 
 #endif

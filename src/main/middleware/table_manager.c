@@ -2,7 +2,8 @@
 #include <string.h>
 
 #include "page_cacheing/cache_manager.h"
-#include "user_interface/scanners/scanners.h"
+#include "user_interface/read_scan.h"
+#include "user_interface/write_scan.h"
 #include "util/my_string.h"
 #include "middleware/schema.h"
 
@@ -76,13 +77,13 @@ void createTable(struct TableManager* tm, struct Schema* schema) {
 
     int64_t tableId = getNextTableId(tm);
 
-    insert(tableScanner);
-    setVarchar(tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN, schema->name);
-    setInt(tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME, -1);
-    setInt(tableScanner, TABLE_RECORD_SIZE_COLUMN_NAME, schema->slotSize);
-    setInt(tableScanner, TABLE_OF_TABLES_ID_COLUMN, tableId);
+    insert((struct ScanInterface*)tableScanner);
+    setVarchar((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN, schema->name);
+    setInt((struct ScanInterface*)tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME, -1);
+    setInt((struct ScanInterface*)tableScanner, TABLE_RECORD_SIZE_COLUMN_NAME, schema->slotSize);
+    setInt((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_ID_COLUMN, tableId);
 
-    destroyTableScanner(tableScanner);
+    destroy((struct ScanInterface*)tableScanner);
 
 
     po = tm->cacheManager->fileManager->header.tableOfColumns;
@@ -95,14 +96,16 @@ void createTable(struct TableManager* tm, struct Schema* schema) {
 
     struct Field* field = schema->firstField;
     while (field != NULL) {
-        insert(colScanner);
-        setString(colScanner, COLUMN_TABLE_NAME_COLUMN, field->name);
-        setInt(colScanner, COLUMN_TABLE_TABLE_ID_COLUMN, tableId);
-        setInt(colScanner, COLUMN_TABLE_TYPE_COLUMN, field->type);
-        setInt(colScanner, COLUMN_TABLE_LENGTH_COLUMN, field->len);
+        insert((struct ScanInterface*)colScanner);
+        setString((struct ScanInterface*)colScanner, COLUMN_TABLE_NAME_COLUMN, field->name);
+        setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TABLE_ID_COLUMN, tableId);
+        setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TYPE_COLUMN, field->type);
+        setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_LENGTH_COLUMN, field->len);
         field = field->next;
     }
-    destroyTableScanner(colScanner);
+    destroy((struct ScanInterface*)colScanner);
+
+    writeFileHeader(tm->cacheManager->fileManager);
 }
 
 // handle problem that page with strign may be freed by bufferManager
@@ -112,30 +115,37 @@ struct Schema* findTableSchema(struct TableManager* tm, char* tableName) {
     int64_t firstPageOffset;
     size_t recordSize;
     size_t tableId;
-    while (next(tableScanner)) {
-        if (equals(getString(tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN), tblName)) {
-            firstPageOffset = getInt(tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME);
-            recordSize = getInt(tableScanner, TABLE_RECORD_SIZE_COLUMN_NAME);
-            tableId = getInt(tableScanner, TABLE_OF_TABLES_ID_COLUMN);
+
+    bool found = false;
+    while (next((struct ScanInterface*)tableScanner)) {
+        if (equals(getString((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN), tblName)) {
+            firstPageOffset = getInt((struct ScanInterface*)tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME);
+            recordSize = getInt((struct ScanInterface*)tableScanner, TABLE_RECORD_SIZE_COLUMN_NAME);
+            tableId = getInt((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_ID_COLUMN);
+            found = true;
             break;
         }
     }
 
-    destroyTableScanner(tableScanner);
+    if (!found) {
+        return NULL;
+    }
+
+    destroy((struct ScanInterface*)tableScanner);
 
     struct Schema* schema = createSchema(tableName);
     struct TableScanner* colScanner = createTableScanner(tm->cacheManager, tm->columnTable, false, tm->cacheManager->fileManager->header.tableOfColumns.offset);
-    while(next(colScanner)) {
-        if (getInt(colScanner, COLUMN_TABLE_TABLE_ID_COLUMN) == tableId) {
-            struct String name = getString(colScanner, COLUMN_TABLE_NAME_COLUMN);
-            int64_t fieldType = getInt(colScanner, COLUMN_TABLE_TYPE_COLUMN);
-            int64_t length = getInt(colScanner, COLUMN_TABLE_LENGTH_COLUMN);
+    while(next((struct ScanInterface*)colScanner)) {
+        if (getInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TABLE_ID_COLUMN) == tableId) {
+            struct String name = getString((struct ScanInterface*)colScanner, COLUMN_TABLE_NAME_COLUMN);
+            int64_t fieldType = getInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TYPE_COLUMN);
+            int64_t length = getInt((struct ScanInterface*)colScanner, COLUMN_TABLE_LENGTH_COLUMN);
             
             addField(schema, name.value, fieldType, length);
         }
     }
     schema->slotSize = recordSize;
     schema->startBlock = firstPageOffset;
-    destroyTableScanner(colScanner);
+    destroy((struct ScanInterface*)colScanner);
     return schema;
 }

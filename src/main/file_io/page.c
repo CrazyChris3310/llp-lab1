@@ -41,7 +41,7 @@ bool getPageBool(struct Page* page, size_t offset) {
 }
 
 struct String getPageString(struct Page* page, size_t offset) {
-    struct String str = {};
+    struct String str = {0};
     str.lenght = getPageSizeT(page, offset);
     str.value = (char*)(page->data + getRealOffset(offset) + sizeof(size_t));
     return str;
@@ -77,6 +77,6 @@ void setPageString(struct Page* page, size_t offset, struct String value) {
     }
 }
 
-void* getRawData(struct Page* page, size_t offset) {
+uint8_t* getRawData(struct Page* page, size_t offset) {
     return page->data + getRealOffset(offset);
 }
