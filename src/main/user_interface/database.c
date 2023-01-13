@@ -60,7 +60,7 @@ struct ScanInterface* performSelectQuery(struct Database* database, struct Selec
             }
         }
 
-        destroy((struct ScanInterface*)tableScanner);
+        destroyScanner((struct ScanInterface*)tableScanner);
     }
 
     return scan;
@@ -82,7 +82,7 @@ void performInsertQuery(struct Database* database, struct InsertQuery* query) {
     }
 
     freeListIterator(iterator);
-    destroy(scan);
+    destroyScanner(scan);
 }
 
 void performDeleteQuery(struct Database* database, struct DeleteQuery* query) {
@@ -91,12 +91,12 @@ void performDeleteQuery(struct Database* database, struct DeleteQuery* query) {
 
     assert(!isNew);
 
-    struct TableScanner* scan = createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+    struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+    scan = (struct ScanInterface*)createSelectScanner(scan, *query->predicate);
 
     while (next(scan)) {
-
+        deleteRecord(scan);
     }
 
-    freeListIterator(iterator);
-    destroy(scan);
+    destroyScanner(scan);
 }

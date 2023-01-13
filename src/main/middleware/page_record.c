@@ -145,7 +145,7 @@ static void setTakenFlag(struct PageRecord *record, bool value) {
     releaseCachedPage(record->cacheManager, cachedPage);
 }
 
-void deleteRecord(struct PageRecord *record) {
+void deletePageRecord(struct PageRecord *record) {
     setTakenFlag(record, EMPTY);
 }
 

@@ -10,6 +10,7 @@ struct ScanInterface {
 
     bool(*goToNextRecord)(void* ptr);
     void(*insertNextRecord)(void* ptr);
+    void(*deleteRecord)(void* ptr);
 
     int64_t(*getInt)(void* ptr, char* field);
     struct String(*getString)(void* ptr, char* filed);

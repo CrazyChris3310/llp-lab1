@@ -69,8 +69,12 @@ void insert(struct ScanInterface* scanner) {
     scanner->insertNextRecord(scanner);
 }
 
-void destroy(struct ScanInterface* scanner) {
+void destroyScanner(struct ScanInterface* scanner) {
     scanner->destroy(scanner);
+}
+
+void deleteRecord(struct ScanInterface* scanner) {
+    scanner->deleteRecord(scanner);
 }
 
 void reset(struct ScanInterface* scanner) {

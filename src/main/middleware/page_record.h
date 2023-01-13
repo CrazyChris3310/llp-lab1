@@ -28,7 +28,7 @@ void setFloatToRecord(struct PageRecord* record, struct String field, float valu
 void setBoolToRecord(struct PageRecord* record, struct String field, bool value);
 void setStringToRecord(struct PageRecord* record, struct String field, struct String value);
 
-void deleteRecord(struct PageRecord *record);
+void deletePageRecord(struct PageRecord *record);
 bool goToNextRecord(struct PageRecord* record);
 bool insertNextRecord(struct PageRecord* record);
 void clearAllRecords(struct PageRecord* record);

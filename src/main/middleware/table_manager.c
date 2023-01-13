@@ -64,7 +64,7 @@ void createDatabaseTable(struct TableManager* tm, struct Schema* schema) {
     setInt((struct ScanInterface*)tableScanner, TABLE_RECORD_SIZE_COLUMN_NAME, schema->slotSize);
     setInt((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_ID_COLUMN, tableId);
 
-    destroy((struct ScanInterface*)tableScanner);
+    destroyScanner((struct ScanInterface*)tableScanner);
 
 
     po = tm->cacheManager->fileManager->header.tableOfColumns;
@@ -84,7 +84,7 @@ void createDatabaseTable(struct TableManager* tm, struct Schema* schema) {
         setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_LENGTH_COLUMN, field->len);
         field = field->next;
     }
-    destroy((struct ScanInterface*)colScanner);
+    destroyScanner((struct ScanInterface*)colScanner);
 
     writeFileHeader(tm->cacheManager->fileManager);
 }
@@ -112,7 +112,7 @@ struct Schema* findTableSchema(struct TableManager* tm, char* tableName) {
         return NULL;
     }
 
-    destroy((struct ScanInterface*)tableScanner);
+    destroyScanner((struct ScanInterface*)tableScanner);
 
     struct Schema* schema = createSchema(tableName);
     schema->shouldClear = true;
@@ -128,6 +128,6 @@ struct Schema* findTableSchema(struct TableManager* tm, char* tableName) {
     }
     schema->slotSize = recordSize;
     schema->startBlock = firstPageOffset;
-    destroy((struct ScanInterface*)colScanner);
+    destroyScanner((struct ScanInterface*)colScanner);
     return schema;
 }

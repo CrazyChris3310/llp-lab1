@@ -8,6 +8,7 @@
 struct ScanInterface;
 
 void insert(struct ScanInterface* scanner);
+void deleteRecord(struct ScanInterface* scanner);
 
 void setInt(struct ScanInterface* scanner, char* field, int64_t value);
 void setFloat(struct ScanInterface* scanner, char* field, float value);

@@ -81,7 +81,7 @@ void tryCreateTables() {
         printf("floating: %f\n", getFloat(scanner, "floating"));
     }
 
-    destroy(scanner);
+    destroyScanner(scanner);
     destroyPredicate(predicate);
 
     closeDatabase(database);

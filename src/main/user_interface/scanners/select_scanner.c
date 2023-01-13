@@ -22,6 +22,7 @@ void __setVarcharToSelectScanner(void* ptr, char* field, char* value);
 
 static bool __selectScanNextFunction(void* ptr);
 static void __insertRecordIntoSelectScanner(void* ptr);
+static void __deleteRecordFromSelectScanner(void* ptr);
 
 void __destroySelectScanner(void* ptr);
 static void __resetSelectScanner(void* ptr);
@@ -49,6 +50,7 @@ struct SelectScanner* createSelectScanner(struct ScanInterface* scan, struct Pre
 
     scanner->scanInterface.destroy = __destroySelectScanner;
     scanner->scanInterface.reset = __resetSelectScanner;
+    scanner->scanInterface.deleteRecord = __deleteRecordFromSelectScanner;
 
     return scanner;
 }
@@ -159,4 +161,9 @@ static void __insertRecordIntoSelectScanner(void* ptr) {
 static void __resetSelectScanner(void* ptr) {
     struct SelectScanner* scanner = (struct SelectScanner*)ptr;
     scanner->tableScanner->reset(scanner->tableScanner);
+}
+
+static void __deleteRecordFromSelectScanner(void* ptr) {
+    struct SelectScanner* scanner = (struct SelectScanner*)ptr;
+    scanner->tableScanner->deleteRecord(scanner->tableScanner);
 }

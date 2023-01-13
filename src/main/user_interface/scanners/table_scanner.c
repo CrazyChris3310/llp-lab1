@@ -11,6 +11,8 @@
 
 static bool __tableScanNextFunction(void* ptr);
 static void __insertRecordIntoTableScanner(void* ptr);
+static void __deleteRecordFromTableScanner(void* ptr);
+
 void __setIntegerToTableScanner(void* ptr, char* field, int64_t value);
 void __setFloatToTableScanner(void* ptr, char* field, float value);
 void __setBoolToTableScanner(void* ptr, char* field, bool value);
@@ -50,6 +52,7 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
 
     scanner->scanInterface.goToNextRecord = __tableScanNextFunction;
     scanner->scanInterface.insertNextRecord = __insertRecordIntoTableScanner;
+    scanner->scanInterface.deleteRecord = __deleteRecordFromTableScanner;
 
     scanner->scanInterface.getBool = __getBoolFromTableScanner;
     scanner->scanInterface.getFloat = __getFloatFromTableScanner;
@@ -239,4 +242,9 @@ static void __insertRecordIntoTableScanner(void* ptr) {
 static void __resetTableScanner(void* ptr) {
     struct TableScanner* scanner = (struct TableScanner*)ptr;
     moveScannerToBlock(scanner, scanner->startBlock);
+}
+
+static void __deleteRecordFromTableScanner(void* ptr) {
+    struct TableScanner* scanner = (struct TableScanner*)ptr;
+    deletePageRecord(scanner->pageRecord);
 }

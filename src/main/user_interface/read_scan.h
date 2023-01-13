@@ -17,6 +17,6 @@ struct String getString(struct ScanInterface* scanner, char* field);
 struct Constant getField(struct ScanInterface* scanner, char* field);
 
 // destroy given scanners and all inner scanners
-void destroy(struct ScanInterface* scanner);
+void destroyScanner(struct ScanInterface* scanner);
 
 #endif
