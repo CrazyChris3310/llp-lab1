@@ -37,7 +37,6 @@ void tryCreateTables() {
     // bool isNew = schema->startBlock == -1;
     // struct ScanInterface* scanner = (struct ScanInterface*)createTableScanner(cm, schema, isNew, schema->startBlock);
 
-    struct ScanInterface* scanner = performQuery(database, "test", NULL);
 
     // insert(scanner);
     // setVarchar(scanner, "name", "ablubla");
@@ -64,7 +63,6 @@ void tryCreateTables() {
     // setInt(scanner, "number", 287);
     // setFloat(scanner, "floating", 987.654);
 
-    destroy(scanner);
     // destroySchema(schema);
     // schema = NULL;
     // scanner = NULL;
@@ -73,12 +71,9 @@ void tryCreateTables() {
     struct Condition condition = createCondition("number", (struct Constant){ .type=INT, .value.intVal=123}, EQUAL);
     addCondition(&predicate, condition);
 
-    struct SelectQuery query = {
-        .from="test",
-        .predicate=&predicate
-    };
+    struct SelectQuery query = createSelectQuery("test", &predicate);
 
-    scanner = performQuery(database, "test", &query);
+    struct ScanInterface* scanner = performSelectQuery(database, &query);
     printf("\nData:\n");
     while (next(scanner)) {
         printf("name: %s\n", getString(scanner, "name").value);
@@ -87,38 +82,6 @@ void tryCreateTables() {
     }
 
     destroy(scanner);
-
-
-    // struct Schema* schema = findTableSchema(tm, "test");
-    // bool isNew = schema->startBlock == -1;
-
-    // struct ScanInterface* scanner = (struct ScanInterface*)createTableScanner(cm, schema, isNew, schema->startBlock);
-
-    // // struct ScanInterface* scanner = (struct ScanInterface*)createTableScanner(cm, schema, isNew, schema->startBlock);
-
-    // printf("\nData:\n");
-    // while (next(scanner)) {
-    //     printf("name: %s\n", getString(scanner, "name").value);
-    //     printf("number: %" PRId64 "\n", getInt(scanner, "number"));
-    //     printf("floating: %f\n", getFloat(scanner, "floating"));
-    // }
-
-    // // destroy(scanner);
-
-    // struct Predicate predicate = {0};
-    // struct Condition condition = createCondition("name", (struct Constant){ .type=STRING, .value.stringVal="ablubla" }, EQUAL);
-    // addCondition(&predicate, condition);
-
-    // struct ScanInterface* selector = (struct ScanInterface*)createSelectScanner(scanner, predicate);
-
-    // printf("\nData:\n");
-    // while (next(selector)) {
-    //     printf("name: %s\n", getString(selector, "name").value);
-    //     printf("number: %" PRId64 "\n", getInt(selector, "number"));
-    //     printf("floating: %f\n", getFloat(selector, "floating"));
-    // }
-
-    // destroy(selector);
 
     closeDatabase(database);
 

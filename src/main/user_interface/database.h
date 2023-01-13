@@ -9,6 +9,6 @@ struct Database* openDatabase(char* filename);
 void closeDatabase(struct Database* db);
 
 void createTable(struct Database* database, struct Schema* schema);
-struct ScanInterface* performQuery(struct Database* database, char* tableName, struct SelectQuery* query);
+struct ScanInterface* performSelectQuery(struct Database* database, struct SelectQuery* query);
 
 #endif

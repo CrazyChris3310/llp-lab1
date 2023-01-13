@@ -37,19 +37,19 @@ void createTable(struct Database* database, struct Schema* schema) {
     createDatabaseTable(database->tableManager, schema);
 }
 
-struct ScanInterface* performQuery(struct Database* database, char* tableName, struct SelectQuery* query) {
-    struct Schema* schema = findTableSchema(database->tableManager, tableName);
+struct ScanInterface* performSelectQuery(struct Database* database, struct SelectQuery* query) {
+    struct Schema* schema = findTableSchema(database->tableManager, query->from);
     bool isNew = schema->startBlock == -1;
 
     struct ScanInterface* scanning = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
     struct ScanInterface* scan = scanning;
-    if (query != NULL) {
+    if (query->predicate != NULL) {
         scan = (struct ScanInterface*)createSelectScanner(scanning, *query->predicate);
     }
 
     if (isNew && schema->startBlock != -1) {
         struct TableScanner* tableScanner = createTableScanner(database->cacheManager, database->tableManager->tableOfTables, false, database->fileManager->header.tableOfTables.offset);
-        struct String tblName = (struct String){ .value = tableName, .lenght = strlen(tableName) };
+        struct String tblName = (struct String){ .value = query->from, .lenght = strlen(query->from) };
 
         while (next((struct ScanInterface*)tableScanner)) {
             if (equals(getString((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN), tblName)) {
