@@ -13,8 +13,7 @@ struct SelectQuery {
 
 struct InsertQuery {
     char* into;
-    struct LinkedList* fields;
-    struct Constant* values;
+    struct LinkedList* values;
 };
 
 struct DeleteQuery {
@@ -30,7 +29,7 @@ struct UpdateQuery {
 };
 
 struct SelectQuery createSelectQuery(char* from, struct Predicate* predicate);
-struct InsertQuery createInsertQuery(char* into, struct LinkedList* fields, struct Constant* values);
+struct InsertQuery createInsertQuery(char* into, struct LinkedList* values);
 struct DeleteQuery createDeleteQuery(char* from, struct Predicate* predicate);
 struct UpdateQuery createUpdateQuery(char* table, char* field, struct Constant* value, struct Predicate* predicate);
 

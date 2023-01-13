@@ -6,6 +6,8 @@
 #include "middleware/table_manager.h"
 #include "user_interface/query.h"
 #include "user_interface/write_scan.h"
+#include <assert.h>
+#include "util/linked_list.h"
 
 #define DEFAULT_BLOCK_SIZE 4096
 #define DEFAULT_POOL_SIZE 10
@@ -62,4 +64,39 @@ struct ScanInterface* performSelectQuery(struct Database* database, struct Selec
     }
 
     return scan;
+}
+
+void performInsertQuery(struct Database* database, struct InsertQuery* query) {
+    struct Schema* schema = findTableSchema(database->tableManager, query->into);
+    bool isNew = schema->startBlock == -1;
+
+    assert(!isNew);
+
+    struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+
+    insert(scan);
+    struct ListIterator* iterator = createListIterator(query->values);
+    while (iteratorHasNext(iterator)) {
+        struct Condition* condition = (struct Condition*)iteratorNext(iterator);
+        setField(scan, condition->fieldName, condition->constant);
+    }
+
+    freeListIterator(iterator);
+    destroy(scan);
+}
+
+void performDeleteQuery(struct Database* database, struct DeleteQuery* query) {
+    struct Schema* schema = findTableSchema(database->tableManager, query->from);
+    bool isNew = schema->startBlock == -1;
+
+    assert(!isNew);
+
+    struct TableScanner* scan = createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+
+    while (next(scan)) {
+
+    }
+
+    freeListIterator(iterator);
+    destroy(scan);
 }

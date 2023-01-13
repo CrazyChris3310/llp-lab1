@@ -14,5 +14,6 @@ void setFloat(struct ScanInterface* scanner, char* field, float value);
 void setBool(struct ScanInterface* scanner, char* field, bool value);
 void setString(struct ScanInterface* scanner, char* field, struct String value);
 void setVarchar(struct ScanInterface* scanner, char* field, char* value);
+void setField(struct ScanInterface* scanner, char* field, struct Constant value);
 
 #endif

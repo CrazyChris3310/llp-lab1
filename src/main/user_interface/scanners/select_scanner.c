@@ -6,6 +6,7 @@
 #include "user_interface/write_scan.h"
 #include "util/comparators.h"
 #include "user_interface/scanners/scanner_declarations.h"
+#include "util/linked_list.h"
 
 int64_t __getIntegerFromSelectScanner(void* ptr, char* field);
 float __getFloatFromSelectScanner(void* ptr, char* field);
@@ -74,18 +75,17 @@ static bool conditionIsSatisfied(struct SelectScanner* scanner, struct Condition
 }
 
 static bool predicateIsSatisfied(struct SelectScanner* scanner, struct Predicate predicate) {
-    struct Condition* current = predicate.condition;
-    if (current == NULL) {
-        return true;
-    }
-
-    while (current != NULL) {
-        if (!conditionIsSatisfied(scanner, *current)) {
-            return false;
+    struct ListIterator* iterator = createListIterator(predicate.conditions);
+    bool result = true;
+    while (iteratorHasNext(iterator)) {
+        struct Condition* condition = iteratorNext(iterator);
+        if (!conditionIsSatisfied(scanner, *condition)) {
+            result = false;
+            break;
         }
-        current = current->next;
-    };
-    return true;
+    }
+    freeListIterator(iterator);
+    return result;
 }
 
 int64_t __getIntegerFromSelectScanner(void* ptr, char* field) {

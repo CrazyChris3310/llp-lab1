@@ -7,10 +7,9 @@ struct SelectQuery createSelectQuery(char* from, struct Predicate* predicate) {
     };
 }
 
-struct InsertQuery createInsertQuery(char* into, struct LinkedList* fields, struct Constant* values) {
+struct InsertQuery createInsertQuery(char* into, struct LinkedList* values) {
     return (struct InsertQuery) {
         .into = into,
-        .fields = fields,
         .values = values
     };
 }

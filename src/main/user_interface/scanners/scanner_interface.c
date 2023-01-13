@@ -6,6 +6,7 @@
 #include "page_cacheing/cache_manager.h"
 #include "middleware/page_record.h"
 #include "scanner_declarations.h"
+#include "middleware/data_type.h"
 
 #include "user_interface/read_scan.h"
 #include "user_interface/write_scan.h"
@@ -46,6 +47,18 @@ void setString(struct ScanInterface* scanner, char* field, struct String value) 
 
 void setVarchar(struct ScanInterface* scanner, char* field, char* value) {
     scanner->setVarchar(scanner, field, value);
+}
+
+void setField(struct ScanInterface* scanner, char* field, struct Constant value) {
+    if (value.type == STRING) {
+        scanner->setVarchar(scanner, field, value.value.stringVal);
+    } else if (value.type == INT) {
+        scanner->setInt(scanner, field, value.value.intVal);
+    } else if (value.type == FLOAT) {
+        scanner->setFloat(scanner, field, value.value.floatVal);
+    } else if (value.type == BOOL) {
+        scanner->setBool(scanner, field, value.value.boolVal);
+    }
 }
 
 bool next(struct ScanInterface* scanner) {

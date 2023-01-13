@@ -67,11 +67,11 @@ void tryCreateTables() {
     // schema = NULL;
     // scanner = NULL;
 
-    struct Predicate predicate = {0};
+    struct Predicate* predicate = createPredicate();
     struct Condition condition = createCondition("number", (struct Constant){ .type=INT, .value.intVal=123}, EQUAL);
-    addCondition(&predicate, condition);
+    addCondition(predicate, condition);
 
-    struct SelectQuery query = createSelectQuery("test", &predicate);
+    struct SelectQuery query = createSelectQuery("test", predicate);
 
     struct ScanInterface* scanner = performSelectQuery(database, &query);
     printf("\nData:\n");
@@ -82,6 +82,7 @@ void tryCreateTables() {
     }
 
     destroy(scanner);
+    destroyPredicate(predicate);
 
     closeDatabase(database);
 
