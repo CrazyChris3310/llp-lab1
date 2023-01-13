@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 
 struct Node {
     void* data;
@@ -20,6 +21,9 @@ struct LinkedList* createLinkedList() {
 }
 
 void freeLinkedList(struct LinkedList* list) {
+    if (list == NULL) {
+        return;
+    }
     struct Node* node = list->head;
     while (node != NULL) {
         struct Node* next = node->next;
@@ -30,6 +34,9 @@ void freeLinkedList(struct LinkedList* list) {
 }
 
 void addNode(struct LinkedList* list, void* data) {
+    if (list == NULL) {
+        return;
+    }
     struct Node* node = malloc(sizeof(struct Node));
     node->data = data;
     node->next = NULL;
@@ -44,7 +51,7 @@ void addNode(struct LinkedList* list, void* data) {
 }
 
 void* removeNode(struct LinkedList* list, size_t index) {
-    if (index >= list->size) {
+    if (list == NULL || index >= list->size) {
         return NULL;
     }
     struct Node* node = list->head;
@@ -68,7 +75,7 @@ void* removeNode(struct LinkedList* list, size_t index) {
 }
 
 void* getNode(struct LinkedList* list, size_t index) {
-    if (index >= list->size) {
+    if (list == NULL || index >= list->size) {
         return NULL;
     }
     struct Node* node = list->head;
@@ -78,6 +85,39 @@ void* getNode(struct LinkedList* list, size_t index) {
     return node->data;
 }
 
-size_t getSize(struct LinkedList* list) {
+size_t getListSize(struct LinkedList* list) {
     return list->size;
+}
+
+struct ListIterator {
+    struct LinkedList* list;
+    struct Node* next;
+};
+
+struct ListIterator* createListIterator(struct LinkedList* list) {
+    struct ListIterator* iterator = malloc(sizeof(struct ListIterator));
+    iterator->list = list;
+    if (list == NULL) {
+        iterator->next = NULL;
+    } else {
+        iterator->next = list->head;
+    }
+    return iterator;
+}
+
+void freeListIterator(struct ListIterator* iterator) {
+    free(iterator);
+}
+
+bool iteratorHasNext(struct ListIterator* iterator) {
+    return iterator->next != NULL;
+}
+
+void* iteratorNext(struct ListIterator* iterator) {
+    if (!iteratorHasNext(iterator)) {
+        return NULL;
+    }
+    void* data = iterator->next->data;
+    iterator->next = iterator->next->next;
+    return data;
 }
