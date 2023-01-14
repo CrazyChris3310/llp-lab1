@@ -1,8 +1,11 @@
 #include "tests.h"
 
 int main() {
-//     testReadAndWriteToSinglePage();
-//     testReadAndWriteToPageFileReopen();
-//     testDataNotLost();
-    tryCreateTables();
+    testReadAndWriteToSinglePage();
+    testReadAndWriteToPageFileReopen();
+    testDataNotLost();
+
+
+    testCreateTable();
+    testInsertAndReadData();
 }

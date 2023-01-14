@@ -5,10 +5,15 @@
 #include <stdbool.h>
 #include "file_io/page.h"
 
+static void freeField(void* ptr) {
+    struct Field* field = (struct Field*)ptr;
+    free(field->name.value);
+    free(field);
+}
+
 struct Schema* createSchema(char* name) {
     struct Schema* schema = malloc(sizeof(struct Schema));
-    schema->firstField = NULL;
-    schema->lastField = NULL;
+    schema->fields = createClearableLinkedList(freeField);
     schema->slotSize = sizeof(bool);
     schema->name = name;
     schema->shouldClear = false;
@@ -17,6 +22,7 @@ struct Schema* createSchema(char* name) {
 
 void destroySchema(struct Schema* schema) {
     clearSchema(schema);
+    freeLinkedList(schema->fields);
     free(schema);
 }
 
@@ -30,15 +36,12 @@ void addField(struct Schema* schema, char* name, enum DataType type, size_t len)
     field->name = (struct String){.value = realName, .lenght = length };
     field->type = type;
     field->len = len;
-    field->next = NULL;
     field->offset = schema->slotSize;
-    if (schema->firstField == NULL) {
-        schema->firstField = field;
-    } else {
-        schema->lastField->next = field;
-    }
-    schema->lastField = field;
+    addNode(schema->fields, field);
     schema->slotSize += len;
+    if (type == STRING) {
+        schema->slotSize += sizeof(size_t);
+    }
 }
 
 // FIXME:
@@ -46,16 +49,7 @@ void clearSchema(struct Schema* schema) {
     if (schema == NULL) {
         return;
     }
-
-    struct Field* current = schema->firstField;
-    while (current != NULL) {
-        struct Field* next = current->next;
-        free(current->name.value);
-        free(current);
-        current = next;
-    }
-    schema->firstField = NULL;
-    schema->lastField = NULL;
+    clearList(schema->fields);
 }
 
 void addIntField(struct Schema* schema, char* name) {
@@ -66,53 +60,56 @@ void addFloatField(struct Schema* schema, char* name) {
     addField(schema, name, FLOAT, sizeof(float));
 }
 
-size_t bitsToBytes(size_t bits) {
-    return bits / 8 + 1;
-}
-
 void addStringField(struct Schema* schema, char* name, size_t len) {
     addField(schema, name, STRING, len + 1); 
-    schema->slotSize += sizeof(size_t);  // bytes containing length of the string
 }
 
 void addBooleanField(struct Schema* schema, char* name) {
     addField(schema, name, BOOL, sizeof(bool));
 }
 
-struct Field* getFieldList(struct Schema* schema) {
-    return schema->firstField;
+struct LinkedList* getFieldList(struct Schema* schema) {
+    return schema->fields;
 }
 
-
 struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field) {
-    struct Field* current = schema->firstField;
-    while (current != NULL) {
+    struct PossibleOffset result = { .exists=false };
+    struct ListIterator* iterator = createListIterator(schema->fields);
+    while (iteratorHasNext(iterator)) {
+        struct Field* current = (struct Field*)iteratorNext(iterator);
         if (compareStrings(current->name, field) == 0) {
-            return (struct PossibleOffset){ .exists=true, .offset=current->offset };
+            result = (struct PossibleOffset){ .exists=true, .offset=current->offset };
+            break;
         }
-        current = current->next;
     }
-    return (struct PossibleOffset){ .exists=false };
+    freeListIterator(iterator);
+    return result;
 }
 
 struct PossibleOffset getFieldLength(struct Schema* schema, struct String field) {
-    struct Field* current = schema->firstField;
-    while (current != NULL) {
+    struct PossibleOffset result = { .exists=false };
+    struct ListIterator* iterator = createListIterator(schema->fields);
+    while (iteratorHasNext(iterator)) {
+        struct Field* current = (struct Field*)iteratorNext(iterator);
         if (compareStrings(current->name, field) == 0) {
-            return (struct PossibleOffset){ .exists=true, .offset=current->len };
+            result = (struct PossibleOffset){ .exists=true, .offset=current->len };
+            break;
         }
-        current = current->next;
     }
-    return (struct PossibleOffset){ .exists=false };
+    freeListIterator(iterator);
+    return result;
 }
 
 enum DataType getFieldType(struct Schema* schema, struct String field) {
-    struct Field* current = schema->firstField;
-    while (current != NULL) {
+    enum DataType result = -1;
+    struct ListIterator* iterator = createListIterator(schema->fields);
+    while (iteratorHasNext(iterator)) {
+        struct Field* current = (struct Field*)iteratorNext(iterator);
         if (compareStrings(current->name, field) == 0) {
-            return current->type;
+            result = current->type;
+            break;
         }
-        current = current->next;
     }
-    return -1;
+    freeListIterator(iterator);
+    return result;
 }

@@ -39,6 +39,20 @@ void createTable(struct Database* database, struct Schema* schema) {
     createDatabaseTable(database->tableManager, schema);
 }
 
+static void setTableFirstBlock(struct Database* database, char* tableName, size_t firstBlock) {
+    struct TableScanner* tableScanner = createTableScanner(database->cacheManager, database->tableManager->tableOfTables, false, database->fileManager->header.tableOfTables.offset);
+        struct String tblName = (struct String){ .value = tableName, .lenght = strlen(tableName) };
+
+        while (next((struct ScanInterface*)tableScanner)) {
+            if (equals(getString((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN), tblName)) {
+                setInt((struct ScanInterface*)tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME, firstBlock);
+                break;
+            }
+        }
+
+        destroyScanner((struct ScanInterface*)tableScanner);
+}
+
 struct ScanInterface* performSelectQuery(struct Database* database, struct SelectQuery* query) {
     struct Schema* schema = findTableSchema(database->tableManager, query->from);
     bool isNew = schema->startBlock == -1;
@@ -50,17 +64,7 @@ struct ScanInterface* performSelectQuery(struct Database* database, struct Selec
     }
 
     if (isNew && schema->startBlock != -1) {
-        struct TableScanner* tableScanner = createTableScanner(database->cacheManager, database->tableManager->tableOfTables, false, database->fileManager->header.tableOfTables.offset);
-        struct String tblName = (struct String){ .value = query->from, .lenght = strlen(query->from) };
-
-        while (next((struct ScanInterface*)tableScanner)) {
-            if (equals(getString((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN), tblName)) {
-                setInt((struct ScanInterface*)tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME, schema->startBlock);
-                break;
-            }
-        }
-
-        destroyScanner((struct ScanInterface*)tableScanner);
+        setTableFirstBlock(database, query->from, schema->startBlock);
     }
 
     return scan;
@@ -68,11 +72,14 @@ struct ScanInterface* performSelectQuery(struct Database* database, struct Selec
 
 void performInsertQuery(struct Database* database, struct InsertQuery* query) {
     struct Schema* schema = findTableSchema(database->tableManager, query->into);
+    assert(schema != NULL);
     bool isNew = schema->startBlock == -1;
-
-    assert(!isNew);
-
+    
     struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+
+    if (isNew && schema->startBlock != -1) {
+        setTableFirstBlock(database, query->into, schema->startBlock);
+    }
 
     insert(scan);
     struct ListIterator* iterator = createListIterator(query->values);
@@ -99,4 +106,28 @@ void performDeleteQuery(struct Database* database, struct DeleteQuery* query) {
     }
 
     destroyScanner(scan);
+}
+
+void performUpdateQuery(struct Database* database, struct UpdateQuery* query) {
+    struct Schema* schema = findTableSchema(database->tableManager, query->table);
+    bool isNew = schema->startBlock == -1;
+
+    assert(!isNew);
+
+    struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+    scan = (struct ScanInterface*)createSelectScanner(scan, *query->predicate);
+
+    while (next(scan)) {
+        setField(scan, query->condition->fieldName, query->condition->constant);
+    }
+
+    destroyScanner(scan);
+}
+
+void dropDatabase(struct Database* database) {
+    clearFile(database->fileManager);
+}
+
+struct Schema* findTable(struct Database* database, char* tableName) {
+    return findTableSchema(database->tableManager, tableName);
 }

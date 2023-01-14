@@ -1,31 +1,61 @@
 #include "user_interface/query.h"
+#include <stdlib.h>
 
-struct SelectQuery createSelectQuery(char* from, struct Predicate* predicate) {
-    return (struct SelectQuery) {
-        .from = from,
-        .predicate = predicate
-    };
+struct SelectQuery* createSelectQuery(char* from, struct Predicate* predicate) {
+    struct SelectQuery* query = malloc(sizeof(struct SelectQuery));
+    query->from = from;
+    query->predicate = predicate;
+    return query;
 }
 
-struct InsertQuery createInsertQuery(char* into, struct LinkedList* values) {
-    return (struct InsertQuery) {
-        .into = into,
-        .values = values
-    };
+void destroySelectQuery(struct SelectQuery* query) {
+    if (query == NULL) {
+        return;
+    }
+    destroyPredicate(query->predicate);
+    free(query);
 }
 
-struct DeleteQuery createDeleteQuery(char* from, struct Predicate* predicate) {
-    return (struct DeleteQuery) {
-        .from = from,
-        .predicate = predicate
-    };
+/*
+    * Creates an insert query with the given table name and values.
+    * 
+    * @param into The name of the table to insert into.
+    * @param values List of Condition structs containing pair of column name and value.
+    * @return The insert query.
+*/
+struct InsertQuery* createInsertQuery(char* into) {
+    struct InsertQuery* query = malloc(sizeof(struct InsertQuery));
+    query->into = into;
+    query->values = createLinkedList();
+    return query;
 }
 
-struct UpdateQuery createUpdateQuery(char* table, char* field, struct Constant* value, struct Predicate* predicate) {
-    return (struct UpdateQuery) {
-        .table = table,
-        .field = field,
-        .value = value,
-        .predicate = predicate
-    };
+void destroyInsertQuery(struct InsertQuery* query) {
+    freeLinkedList(query->values);
+    free(query);
+}
+
+void addInsertionField(struct InsertQuery* query, char* field, struct Constant value) {
+    struct Condition* condition = createCondition(field, value, EQUAL);
+    addNode(query->values, condition);
+}
+
+struct DeleteQuery* createDeleteQuery(char* from, struct Predicate* predicate) {
+    struct DeleteQuery* query = malloc(sizeof(struct DeleteQuery));
+    query->from = from;
+    query->predicate = predicate;
+    return query;
+}
+
+void destroyDeleteQuery(struct DeleteQuery* query) {
+    destroyPredicate(query->predicate);
+    free(query);
+}
+
+struct UpdateQuery* createUpdateQuery(char* table, char* field, struct Constant* value, struct Predicate* predicate) {
+    struct UpdateQuery* query = malloc(sizeof(struct UpdateQuery));
+    query->table = table;
+    query->condition = createCondition(field, *value, EQUAL);
+    query->predicate = predicate;
+    return query;
 }

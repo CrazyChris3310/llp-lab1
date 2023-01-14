@@ -7,6 +7,7 @@
 #include "util/my_string.h"
 #include "middleware/schema.h"
 #include "middleware/table_manager.h"
+#include "util/linked_list.h"
 
 #define MAX_COL_NAME 60
 
@@ -52,9 +53,7 @@ void createDatabaseTable(struct TableManager* tm, struct Schema* schema) {
     if (!po.exists) {
         tm->cacheManager->fileManager->header.tableOfTables.exists = true;
         tm->cacheManager->fileManager->header.tableOfTables.offset = getCurrentBlock(tableScanner);
-    } else {
-        
-    }
+    } 
 
     int64_t tableId = getNextTableId(tm);
 
@@ -75,15 +74,17 @@ void createDatabaseTable(struct TableManager* tm, struct Schema* schema) {
         tm->cacheManager->fileManager->header.tableOfColumns.offset = getCurrentBlock(colScanner);
     }
 
-    struct Field* field = schema->firstField;
-    while (field != NULL) {
+    struct LinkedList* fields = schema->fields;
+    struct ListIterator* iter = createListIterator(fields);
+    while (iteratorHasNext(iter)) {
+        struct Field* field = (struct Field*)iteratorNext(iter);
         insert((struct ScanInterface*)colScanner);
         setString((struct ScanInterface*)colScanner, COLUMN_TABLE_NAME_COLUMN, field->name);
         setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TABLE_ID_COLUMN, tableId);
         setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TYPE_COLUMN, field->type);
         setInt((struct ScanInterface*)colScanner, COLUMN_TABLE_LENGTH_COLUMN, field->len);
-        field = field->next;
     }
+    freeListIterator(iter);
     destroyScanner((struct ScanInterface*)colScanner);
 
     writeFileHeader(tm->cacheManager->fileManager);

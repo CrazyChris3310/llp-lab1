@@ -9,7 +9,6 @@ struct FileHeader {
     struct PossibleOffset tableOfTables;
     struct PossibleOffset tableOfColumns;
     struct PossibleOffset freePages;
-    bool isNew;
     size_t next_table_id;
 };
 
@@ -33,4 +32,6 @@ size_t addNewBlock(struct FileManager* fm, struct PageHeader* header);
 size_t writeNewPage(struct FileManager *fm, struct Page* page);
 
 size_t getFileLength(struct FileManager* fm);
+
+void clearFile(struct FileManager* fm);
 #endif

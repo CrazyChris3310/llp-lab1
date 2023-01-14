@@ -8,6 +8,12 @@
 #include "util/comparators.h"
 #include "util/linked_list.h"
 
+#define constant(x) _Generic((x), \
+    int:  intConstant, \
+    float:   floatConstant, \
+    char*: stringConstant, \
+    bool: boolConstant)(x)
+
 struct Constant {
     enum DataType type;
     union {
@@ -31,7 +37,12 @@ struct Predicate {
 struct Predicate* createPredicate();
 void destroyPredicate(struct Predicate* predicate);
 
-struct Condition createCondition(char* fieldName, struct Constant constant, enum CompareOperator operator);
-void addCondition(struct Predicate* predicate, struct Condition condition);
+struct Condition* createCondition(char* fieldName, struct Constant constant, enum CompareOperator operator);
+void addCondition(struct Predicate* predicate, char* fieldName, struct Constant constant, enum CompareOperator operator);
+
+struct Constant intConstant(int64_t value);
+struct Constant floatConstant(float value);
+struct Constant boolConstant(bool value);
+struct Constant stringConstant(char* value);
 
 #endif

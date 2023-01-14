@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <string.h>
+#include <stdbool.h>
 
 struct String {
     size_t lenght;
@@ -10,6 +11,6 @@ struct String {
 };
 
 int compareStrings(struct String a, struct String b);
-int equals(struct String a, struct String b);
+bool equals(struct String a, struct String b);
 
 #endif

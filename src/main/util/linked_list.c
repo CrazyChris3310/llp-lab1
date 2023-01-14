@@ -10,26 +10,46 @@ struct LinkedList {
     struct Node* head;
     struct Node* tail;
     size_t size;
+    void(*freeFunction)(void* ptr);
 };
+
+static void defaultFreeNodeDataFunction(void* ptr) {
+    free(ptr);
+}
 
 struct LinkedList* createLinkedList() {
     struct LinkedList* list = malloc(sizeof(struct LinkedList));
     list->head = NULL;
     list->tail = NULL;
+    list->freeFunction = defaultFreeNodeDataFunction;
     list->size = 0;
     return list;
 }
 
-void freeLinkedList(struct LinkedList* list) {
+struct LinkedList* createClearableLinkedList(void(*freeFunction)(void* ptr)) {
+    struct LinkedList* list = createLinkedList();
+    list->freeFunction = freeFunction;
+    return list;
+}
+
+void clearList(struct LinkedList* list) {
     if (list == NULL) {
         return;
     }
     struct Node* node = list->head;
     while (node != NULL) {
         struct Node* next = node->next;
+        list->freeFunction(node->data);
         free(node);
         node = next;
     }
+    list->head = NULL;
+    list->tail = NULL;
+    list->size = 0;
+}
+
+void freeLinkedList(struct LinkedList* list) {
+    clearList(list);
     free(list);
 }
 

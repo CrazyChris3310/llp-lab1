@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "file_manager.h"
 
 static void readFileHeader(struct FileManager* fm) {
@@ -9,7 +10,6 @@ static void readFileHeader(struct FileManager* fm) {
         fm->header.freePages = (struct PossibleOffset){ .exists=false };
         fm->header.tableOfColumns = (struct PossibleOffset){ .exists=false };
         fm->header.tableOfTables = (struct PossibleOffset){ .exists=false };
-        fm->header.isNew = true;
         fm->header.next_table_id = 0;
     } else {
         fseek(fm->file, 0, SEEK_SET);
@@ -40,7 +40,6 @@ struct FileManager* createFileManager(char* filename, size_t blockSize) {
     return manager;
 }
 
-// TODO: better to rename to destroy
 void destoryFileManager(struct FileManager* manager) {
     writeFileHeader(manager);
     fclose(manager->file);
@@ -86,4 +85,14 @@ size_t writeNewPage(struct FileManager *fm, struct Page* page) {
 size_t getFileLength(struct FileManager* fm) {
     fseek(fm->file, 0, SEEK_END);
     return ftell(fm->file);
+}
+
+void clearFile(struct FileManager* fm) {
+    fseek(fm->file, 0, SEEK_SET);
+    ftruncate(fileno(fm->file), 0);
+    fm->header.tableOfTables = (struct PossibleOffset){ .exists=false };
+    fm->header.tableOfColumns = (struct PossibleOffset){ .exists=false };
+    fm->header.freePages = (struct PossibleOffset){ .exists=false };
+    fm->header.next_table_id = 0;
+    writeFileHeader(fm);
 }

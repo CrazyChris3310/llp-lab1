@@ -1,6 +1,2 @@
-void testReadAndWriteToSinglePage();
-void testReadAndWriteToPageFileReopen();
-
-void testDataNotLost();
-
-void tryCreateTables();
+void testCreateTable();
+void testInsertAndReadData();

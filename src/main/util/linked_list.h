@@ -9,7 +9,9 @@ struct LinkedList;
 struct ListIterator;
 
 struct LinkedList* createLinkedList();
+struct LinkedList* createClearableLinkedList(void(*freeFunction)(void* ptr));
 void freeLinkedList(struct LinkedList* list);
+void clearList(struct LinkedList* list);
 void addNode(struct LinkedList* list, void* data);
 void* removeNode(struct LinkedList* list, size_t index);
 void* getNode(struct LinkedList* list, size_t index);

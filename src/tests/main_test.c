@@ -1,18 +1,58 @@
-#include "file_io/file_manager.h"
-#include "page_cacheing/cache_manager.h"
-#include "middleware/table_manager.h"
 #include "middleware/schema.h"
 #include "user_interface/read_scan.h"
-#include "user_interface/write_scan.h"
 #include "user_interface/scanners/scanners.h"
 #include "user_interface/predicates.h"
 #include "user_interface/database.h"
 #include "user_interface/query.h"
+#include "util/linked_list.h"
+#include <assert.h>
 
 
-void tryCreateTables() {
-    
+void testCreateTable() {
+    printf("Start create tables test\n");
     struct Database* database = openDatabase("database");
+    dropDatabase(database);
+
+    struct Schema* schema = createSchema("test");
+    addStringField(schema, "name", 30);
+    addIntField(schema, "number");
+    addFloatField(schema, "floating");
+
+    createTable(database, schema);
+    
+    struct Schema* found = findTable(database, "test");
+    struct LinkedList* expected = getFieldList(schema);
+    struct LinkedList* received = getFieldList(found);
+
+    assert(getListSize(expected) == getListSize(received));
+
+    struct ListIterator* expectedIterator = createListIterator(expected);
+    struct ListIterator* receivedIterator = createListIterator(received);
+
+    while (iteratorHasNext(expectedIterator)) {
+        struct Field* expectedField = (struct Field*)iteratorNext(expectedIterator);
+        struct Field* receivedField = (struct Field*)iteratorNext(receivedIterator);
+
+        assert(equals(expectedField->name, receivedField->name));
+        assert(expectedField->type == receivedField->type);
+        assert(expectedField->len == receivedField->len);
+        assert(expectedField->offset == receivedField->offset);
+    }
+
+    freeListIterator(expectedIterator);
+    freeListIterator(receivedIterator);
+
+    destroySchema(schema);
+    destroySchema(found);
+
+    closeDatabase(database);
+    printf("Teset successfully finished\n\n");
+}
+
+void testInsertAndReadData() {
+    printf("Starting isertion test\n");
+    struct Database* database = openDatabase("database");
+    dropDatabase(database);
 
     struct Schema* schema = createSchema("test");
     addStringField(schema, "name", 30);
@@ -21,69 +61,26 @@ void tryCreateTables() {
 
     createTable(database, schema);
 
-    destroySchema(schema);
-    schema = NULL;
+    struct InsertQuery* query = createInsertQuery("test");
+    addInsertionField(query, "name", constant("abuabu"));
+    addInsertionField(query, "floating", constant(12.5f));
+    addInsertionField(query, "number", constant(123));
 
-    // schema = findTableSchema(tm, "test");
+    performInsertQuery(database, query);
+    destroyInsertQuery(query);
+    
+    struct SelectQuery* selectQuery = createSelectQuery("test", NULL);
+    struct ScanInterface* scanner = performSelectQuery(database, selectQuery);
 
-    // struct Field* field = getFieldList(schema); 
-    // struct Field* dub = field;
-    // printf("Schema:\n");
-    // while (dub != NULL) {
-    //     printf("field read: %s - %d\n", dub->name.value, dub->type);
-    //     dub = dub->next;
-    // }
+    next(scanner);
+    assert(getInt(scanner, "number") == 123);
+    assert(compareFloats(getFloat(scanner, "floating"), 12.5f, EQUAL));
+    assert(strcmp(getString(scanner, "name").value, "abuabu") == 0);
 
-    // bool isNew = schema->startBlock == -1;
-    // struct ScanInterface* scanner = (struct ScanInterface*)createTableScanner(cm, schema, isNew, schema->startBlock);
-
-
-    // insert(scanner);
-    // setVarchar(scanner, "name", "ablubla");
-    // setInt(scanner, "number", 123);
-    // setFloat(scanner, "floating", 123.456);
-
-    // insert(scanner);
-    // setVarchar(scanner, "name", "it's done!");
-    // setInt(scanner, "number", 29571234);
-    // setFloat(scanner, "floating", 544.178);
-
-    // insert(scanner);
-    // setVarchar(scanner, "name", "finger toes");
-    // setInt(scanner, "number", 123);
-    // setFloat(scanner, "floating", 987.654);
-
-    // insert(scanner);
-    // setVarchar(scanner, "name", "mistica");
-    // setInt(scanner, "number", 543);
-    // setFloat(scanner, "floating", 987.654);
-
-    // insert(scanner);
-    // setVarchar(scanner, "name", "ablubla");
-    // setInt(scanner, "number", 287);
-    // setFloat(scanner, "floating", 987.654);
-
-    // destroySchema(schema);
-    // schema = NULL;
-    // scanner = NULL;
-
-    struct Predicate* predicate = createPredicate();
-    struct Condition condition = createCondition("number", (struct Constant){ .type=INT, .value.intVal=123}, EQUAL);
-    addCondition(predicate, condition);
-
-    struct SelectQuery query = createSelectQuery("test", predicate);
-
-    struct ScanInterface* scanner = performSelectQuery(database, &query);
-    printf("\nData:\n");
-    while (next(scanner)) {
-        printf("name: %s\n", getString(scanner, "name").value);
-        printf("number: %" PRId64 "\n", getInt(scanner, "number"));
-        printf("floating: %f\n", getFloat(scanner, "floating"));
-    }
-
+    destroySelectQuery(selectQuery);
     destroyScanner(scanner);
-    destroyPredicate(predicate);
 
     closeDatabase(database);
-
+    
+    printf("Test successfully finished\n\n");
 }
