@@ -32,8 +32,8 @@ void addStringField(struct Schema* schema, char* name, size_t len);
 void addBooleanField(struct Schema* schema, char* name);
 struct LinkedList* getFieldList(struct Schema* schema);
 
-struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field);
-struct PossibleOffset getFieldLength(struct Schema* schema, struct String field);
+struct PossibleValue getFieldOffset(struct Schema* schema, struct String field);
+struct PossibleValue getFieldLength(struct Schema* schema, struct String field);
 enum DataType getFieldType(struct Schema* schema, struct String field);
 
 #endif

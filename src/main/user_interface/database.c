@@ -40,7 +40,7 @@ void createTable(struct Database* database, struct Schema* schema) {
 }
 
 static void setTableFirstBlock(struct Database* database, char* tableName, size_t firstBlock) {
-    struct TableScanner* tableScanner = createTableScanner(database->cacheManager, database->tableManager->tableOfTables, false, database->fileManager->header.tableOfTables.offset);
+    struct TableScanner* tableScanner = createTableScanner(database->cacheManager, database->tableManager->tableOfTables, false, database->fileManager->header.tableOfTables.value);
         struct String tblName = (struct String){ .value = tableName, .lenght = strlen(tableName) };
 
         while (next((struct ScanInterface*)tableScanner)) {
@@ -55,12 +55,12 @@ static void setTableFirstBlock(struct Database* database, char* tableName, size_
 
 struct ScanInterface* performSelectQuery(struct Database* database, struct SelectQuery* query) {
     struct Schema* schema = findTableSchema(database->tableManager, query->from);
+    assert(schema != NULL);
     bool isNew = schema->startBlock == -1;
 
-    struct ScanInterface* scanning = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
-    struct ScanInterface* scan = scanning;
+    struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
     if (query->predicate != NULL) {
-        scan = (struct ScanInterface*)createSelectScanner(scanning, *query->predicate);
+        scan = (struct ScanInterface*)createSelectScanner(scan, *query->predicate);
     }
 
     if (isNew && schema->startBlock != -1) {

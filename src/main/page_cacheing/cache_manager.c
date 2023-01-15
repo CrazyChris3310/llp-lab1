@@ -8,6 +8,7 @@ struct CacheManager* createCacheManager(struct FileManager* fileManager, size_t 
         cacheManager->pagePool[i].page = allocatePage(fileManager->blockSize);
         cacheManager->pagePool[i].usesCount = 0;
         cacheManager->pagePool[i].isNew = true;
+        cacheManager->pagePool[i].blockId = (struct PossibleValue) { .exists = false, .value = 0};
     }
     cacheManager->poolSize = poolSize;
     cacheManager->fileManager = fileManager;
@@ -28,12 +29,18 @@ void flushAllPages(struct CacheManager* cacheManager) {
     for (size_t i = 0; i < cacheManager->poolSize; ++i) {
         struct CachedPage buf = cacheManager->pagePool[i];
         if (buf.page->isDirty) {
-            writePage(cacheManager->fileManager, buf.blockId, buf.page);
+            writePage(cacheManager->fileManager, buf.blockId.value, buf.page);
         }
     }
 }
 
 static struct CachedPage* findNotUsedCachedPage(struct CacheManager* cm) {
+    for (size_t i = 0; i < cm->poolSize; ++i) {
+        if (!cm->pagePool[i].blockId.exists) {
+            return &(cm->pagePool[i]);
+        }
+    }
+
     for (size_t i = 0; i < cm->poolSize; ++i) {
         if (cm->pagePool[i].usesCount <= 0) {
             return &(cm->pagePool[i]);
@@ -44,7 +51,7 @@ static struct CachedPage* findNotUsedCachedPage(struct CacheManager* cm) {
 
 static struct CachedPage* findLoadedCachedPage(struct CacheManager* cm, size_t blockId) {
     for (size_t i = 0; i < cm->poolSize; ++i) {
-        if (cm->pagePool[i].blockId == blockId) {
+        if (cm->pagePool[i].blockId.exists && cm->pagePool[i].blockId.value == blockId) {
             return &(cm->pagePool[i]);
         }
     }
@@ -59,15 +66,14 @@ struct CachedPage* requestCachedPage(struct CacheManager* cm, size_t blockId) {
     }
     buf = findNotUsedCachedPage(cm);
     if (buf == NULL) {
-        // better to return error here
         return NULL;
     }
     if (buf->page->isDirty) {
-        writePage(cm->fileManager, buf->blockId, buf->page);
+        writePage(cm->fileManager, buf->blockId.value, buf->page);
     }
     readPage(cm->fileManager, blockId, buf->page);
     buf->usesCount += 1;
-    buf->blockId = blockId;
+    buf->blockId = (struct PossibleValue){.exists = true, .value = blockId};
     return buf;
 }
 

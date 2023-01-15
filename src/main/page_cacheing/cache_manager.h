@@ -6,7 +6,7 @@
 
 struct CachedPage {
     struct Page* page;
-    size_t blockId;
+    struct PossibleValue blockId;
     size_t usesCount;
     bool isNew;
 };

@@ -30,6 +30,12 @@ struct InsertQuery* createInsertQuery(char* into) {
     return query;
 }
 
+void clearInsertQuery(struct InsertQuery* query) {
+    if (query != NULL) {
+        clearList(query->values);
+    }
+}
+
 void destroyInsertQuery(struct InsertQuery* query) {
     freeLinkedList(query->values);
     free(query);

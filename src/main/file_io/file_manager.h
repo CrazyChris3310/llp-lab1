@@ -6,14 +6,15 @@
 #include "page.h"
 
 struct FileHeader {
-    struct PossibleOffset tableOfTables;
-    struct PossibleOffset tableOfColumns;
-    struct PossibleOffset freePages;
+    struct PossibleValue tableOfTables;
+    struct PossibleValue tableOfColumns;
+    struct PossibleValue freePages;
     size_t next_table_id;
 };
 
 struct FileManager {
     FILE* file;
+    char* filename;
     size_t blockSize;
     bool isNew;
     struct FileHeader header;

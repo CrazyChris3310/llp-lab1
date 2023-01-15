@@ -36,5 +36,6 @@ void destroyDeleteQuery(struct DeleteQuery* query);
 void destroyUpdateQuery(struct UpdateQuery* query);
 
 void addInsertionField(struct InsertQuery* query, char* field, struct Constant value);
+void clearInsertQuery(struct InsertQuery* query);
 
 #endif

@@ -4,9 +4,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-struct PossibleOffset {
+struct PossibleValue {
     bool exists;
-    size_t offset;
+    size_t value;
 };
 
 struct PageHeader {
@@ -14,7 +14,7 @@ struct PageHeader {
     size_t count;
     size_t upper;
     size_t lower;
-    struct PossibleOffset nextPage;
+    struct PossibleValue nextPage;
 };
 
 struct Page {

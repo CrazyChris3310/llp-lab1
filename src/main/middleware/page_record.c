@@ -73,39 +73,13 @@ void* getFieldFromRecord(struct PageRecord* record, struct String field) {
 }
 
 static size_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, size_t recordId, struct String field) {
-    struct PossibleOffset po = getFieldOffset(schema, field);
+    struct PossibleValue po = getFieldOffset(schema, field);
     if (po.exists) {
-        return po.offset + schema->slotSize * recordId;
+        return po.value + schema->slotSize * recordId;
     }
     // FIXME:
     return -1;
 }
-
-// static size_t getNextFieldOffset(struct Page* page, struct Field* field, size_t offset) {
-//     if (field->type != STRING) {
-//         return offset + field->len;
-//     } else {
-//         size_t strLen = getPageSizeT(page, offset);
-//         return offset + sizeof(size_t) + strLen;
-//     }
-// }
-
-// // FIXME: field may be not found
-// static size_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, size_t recordId, struct String field) {
-//     size_t recordOffset = getPageSizeT(page, recordId * sizeof(size_t));
-//     void* data = getRawData(page, recordOffset);
-
-//     struct Field* current = schema->firstField;
-//     while (current != NULL) {
-//         if (compareStrings(current->name, field) == 0) {
-//             break;
-//         }
-//         recordOffset = getNextFieldOffset(page, current, recordOffset);
-//     }
-//     return recordOffset;
-// }
-
-// WARNING: this is only for a fixed size fields
 
 void setIntToRecord(struct PageRecord* record, struct String field, int64_t value) {
     struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
@@ -150,17 +124,20 @@ void deletePageRecord(struct PageRecord *record) {
 }
 
 static bool searchAfter(struct PageRecord* record, bool flag) {
+    struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
+
+    bool ret = false;
     while (recordIsValid(record)) {
         record->id += 1;
-        struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
         bool res = getPageBool(cachedPage->page, record->id * record->schema->slotSize);
-        releaseCachedPage(record->cacheManager, cachedPage); 
         if (res == flag) {
-            return true;
+            ret = true;
+            break;
         }
         // record->id += 1;
     }
-    return false;
+    releaseCachedPage(record->cacheManager, cachedPage); 
+    return ret;
 }
 
 bool goToNextRecord(struct PageRecord* record) {

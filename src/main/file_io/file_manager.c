@@ -7,9 +7,9 @@
 
 static void readFileHeader(struct FileManager* fm) {
     if (fm->isNew) {
-        fm->header.freePages = (struct PossibleOffset){ .exists=false };
-        fm->header.tableOfColumns = (struct PossibleOffset){ .exists=false };
-        fm->header.tableOfTables = (struct PossibleOffset){ .exists=false };
+        fm->header.freePages = (struct PossibleValue){ .exists=false };
+        fm->header.tableOfColumns = (struct PossibleValue){ .exists=false };
+        fm->header.tableOfTables = (struct PossibleValue){ .exists=false };
         fm->header.next_table_id = 0;
     } else {
         fseek(fm->file, 0, SEEK_SET);
@@ -24,6 +24,7 @@ void writeFileHeader(struct FileManager* fm) {
 
 struct FileManager* createFileManager(char* filename, size_t blockSize) {
     struct FileManager* manager = malloc(sizeof(struct FileManager));
+    manager->filename = filename;
     manager->blockSize = blockSize;
     FILE* file = fopen(filename, "rb+");
     if (file == NULL) {
@@ -90,9 +91,9 @@ size_t getFileLength(struct FileManager* fm) {
 void clearFile(struct FileManager* fm) {
     fseek(fm->file, 0, SEEK_SET);
     ftruncate(fileno(fm->file), 0);
-    fm->header.tableOfTables = (struct PossibleOffset){ .exists=false };
-    fm->header.tableOfColumns = (struct PossibleOffset){ .exists=false };
-    fm->header.freePages = (struct PossibleOffset){ .exists=false };
+    fm->header.tableOfTables = (struct PossibleValue){ .exists=false };
+    fm->header.tableOfColumns = (struct PossibleValue){ .exists=false };
+    fm->header.freePages = (struct PossibleValue){ .exists=false };
     fm->header.next_table_id = 0;
     writeFileHeader(fm);
 }

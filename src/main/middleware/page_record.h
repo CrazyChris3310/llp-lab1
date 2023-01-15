@@ -12,6 +12,7 @@ struct PageRecord {
     size_t blockId;
     struct CacheManager* cacheManager;
     struct Schema* schema;
+    size_t id;
 };
 
 struct PageRecord* createPageRecord(struct CacheManager* cm, struct Schema* schema, size_t blockId);

@@ -44,7 +44,6 @@ void addField(struct Schema* schema, char* name, enum DataType type, size_t len)
     }
 }
 
-// FIXME:
 void clearSchema(struct Schema* schema) {
     if (schema == NULL) {
         return;
@@ -72,13 +71,13 @@ struct LinkedList* getFieldList(struct Schema* schema) {
     return schema->fields;
 }
 
-struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field) {
-    struct PossibleOffset result = { .exists=false };
+struct PossibleValue getFieldOffset(struct Schema* schema, struct String field) {
+    struct PossibleValue result = { .exists=false };
     struct ListIterator* iterator = createListIterator(schema->fields);
     while (iteratorHasNext(iterator)) {
         struct Field* current = (struct Field*)iteratorNext(iterator);
         if (compareStrings(current->name, field) == 0) {
-            result = (struct PossibleOffset){ .exists=true, .offset=current->offset };
+            result = (struct PossibleValue){ .exists=true, .value=current->offset };
             break;
         }
     }
@@ -86,13 +85,13 @@ struct PossibleOffset getFieldOffset(struct Schema* schema, struct String field)
     return result;
 }
 
-struct PossibleOffset getFieldLength(struct Schema* schema, struct String field) {
-    struct PossibleOffset result = { .exists=false };
+struct PossibleValue getFieldLength(struct Schema* schema, struct String field) {
+    struct PossibleValue result = { .exists=false };
     struct ListIterator* iterator = createListIterator(schema->fields);
     while (iteratorHasNext(iterator)) {
         struct Field* current = (struct Field*)iteratorNext(iterator);
         if (compareStrings(current->name, field) == 0) {
-            result = (struct PossibleOffset){ .exists=true, .offset=current->len };
+            result = (struct PossibleValue){ .exists=true, .value=current->len };
             break;
         }
     }

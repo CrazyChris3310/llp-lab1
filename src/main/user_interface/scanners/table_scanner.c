@@ -176,8 +176,8 @@ static void moveScannerToNextBlock(struct TableScanner* scanner) {
     struct CachedPage* page = requestCachedPage(scanner->cacheManager, scanner->blockId);
 
     if (page->page->header->nextPage.exists) {
-        scanner->pageRecord = createPageRecord(scanner->cacheManager, scanner->schema, page->page->header->nextPage.offset);
-        scanner->blockId = page->page->header->nextPage.offset;
+        scanner->pageRecord = createPageRecord(scanner->cacheManager, scanner->schema, page->page->header->nextPage.value);
+        scanner->blockId = page->page->header->nextPage.value;
     } else {
         scanner->pageRecord = NULL;
         scanner->blockId = 0;
@@ -189,13 +189,13 @@ static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurren
     header.upper = sizeof(header);
     header.lower = scanner->cacheManager->fileManager->blockSize;
     header.count = 0;
-    header.nextPage = (struct PossibleOffset){ .exists = false };
+    header.nextPage = (struct PossibleValue){ .exists = false };
 
     size_t blockId = addNewBlock(scanner->cacheManager->fileManager, &header);
 
     if (hasCurrent) {
         struct CachedPage* cachedPage = requestCachedPage(scanner->cacheManager, scanner->blockId);
-        cachedPage->page->header->nextPage = (struct PossibleOffset){ .exists = true, .offset = blockId };
+        cachedPage->page->header->nextPage = (struct PossibleValue){ .exists = true, .value = blockId };
         cachedPage->page->isDirty = true;
         releaseCachedPage(scanner->cacheManager, cachedPage);
     }

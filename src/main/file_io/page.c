@@ -80,9 +80,8 @@ void setPageString(struct Page* page, size_t offset, struct String value) {
     page->isDirty = true;
     setPageSizeT(page, offset, value.lenght);
     char* str_dest = (char*)(page->data + getRealOffset(offset) + sizeof(size_t));
-    for (size_t i = 0; i < value.lenght; ++i) {
-        str_dest[i] = value.value[i];
-    }
+    memcpy(str_dest, value.value, value.lenght);
+    str_dest[value.lenght] = '\0';
 }
 
 uint8_t* getRawData(struct Page* page, size_t offset) {
