@@ -60,6 +60,7 @@ void testInsertAndReadData() {
     addFloatField(schema, "floating");
 
     createTable(database, schema);
+    destroySchema(schema);
 
     struct InsertQuery* query = createInsertQuery("test");
     addInsertionField(query, "name", constant("abuabu"));
@@ -68,7 +69,6 @@ void testInsertAndReadData() {
 
     performInsertQuery(database, query);
     destroyInsertQuery(query);
-    destroySchema(schema);
     
     struct SelectQuery* selectQuery = createSelectQuery("test", NULL);
     struct ScanInterface* scanner = performSelectQuery(database, selectQuery);
@@ -97,6 +97,7 @@ void testMultipleInsert() {
     addFloatField(schema, "floating");
 
     createTable(database, schema);
+    destroySchema(schema);
 
     struct InsertQuery* query = createInsertQuery("test");
     addInsertionField(query, "name", constant("abuabu"));
@@ -146,6 +147,7 @@ void testSelectWithCondition() {
     addFloatField(schema, "floating");
 
     createTable(database, schema);
+    destroySchema(schema);
 
     struct InsertQuery* query = createInsertQuery("test");
 
@@ -192,5 +194,193 @@ void testSelectWithCondition() {
 
     closeDatabase(database);
     
+    printf("Test successfully finished\n\n");
+}
+
+void testDeleteData() {
+    printf("Starting delete test\n");
+    struct Database* database = openDatabase("database");
+    dropDatabase(database);
+
+    struct Schema* schema = createSchema("test");
+    addStringField(schema, "name", 30);
+    addIntField(schema, "number");
+    addFloatField(schema, "floating");
+
+    createTable(database, schema);
+    destroySchema(schema);
+
+    struct InsertQuery* query = createInsertQuery("test");
+
+    addInsertionField(query, "name", constant("abuabu"));
+    addInsertionField(query, "floating", constant(12.5f));
+    addInsertionField(query, "number", constant(123));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("abuabu"));
+    addInsertionField(query, "floating", constant(1246.2f));
+    addInsertionField(query, "number", constant(-5));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("asdf"));
+    addInsertionField(query, "floating", constant(1246.2f));
+    addInsertionField(query, "number", constant(182341));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("qwer"));
+    addInsertionField(query, "floating", constant(-47.214f));
+    addInsertionField(query, "number", constant(123));
+    performInsertQuery(database, query);
+
+    destroyInsertQuery(query);
+
+    struct SelectQuery* selectQuery = createSelectQuery("test", NULL);
+    struct ScanInterface* scanner = performSelectQuery(database, selectQuery);
+
+    int count = 0;
+    while (next(scanner)) {
+        count++;
+    }
+    assert(count == 4);
+
+    destroySelectQuery(selectQuery);
+    destroyScanner(scanner);
+
+
+    struct Predicate* predicate = createPredicate();
+    addCondition(predicate, "name", constant("abuabu"), EQUAL);
+    struct DeleteQuery* deleteQuery = createDeleteQuery("test", predicate);
+    performDeleteQuery(database, deleteQuery);
+    destroyDeleteQuery(deleteQuery);
+
+    selectQuery = createSelectQuery("test", NULL);
+    scanner = performSelectQuery(database, selectQuery);
+
+    count = 0;
+    while (next(scanner)) {
+        assert(strcmp(getString(scanner, "name").value, "abuabu") != 0);
+        count++;
+    }
+    assert(count == 2);
+
+    destroySelectQuery(selectQuery);
+    destroyScanner(scanner);
+
+    closeDatabase(database);
+    
+    printf("Test successfully finished\n\n");
+}
+
+void testDeleteAllData() {
+    printf("Starting delete all test\n");
+    struct Database* database = openDatabase("database");
+    dropDatabase(database);
+
+    struct Schema* schema = createSchema("test");
+    addStringField(schema, "name", 30);
+    addIntField(schema, "number");
+    addFloatField(schema, "floating");
+
+    createTable(database, schema);
+    destroySchema(schema);
+
+    struct InsertQuery* query = createInsertQuery("test");
+
+    addInsertionField(query, "name", constant("abuabu"));
+    addInsertionField(query, "floating", constant(12.5f));
+    addInsertionField(query, "number", constant(123));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("abuabu"));
+    addInsertionField(query, "floating", constant(1246.2f));
+    addInsertionField(query, "number", constant(-5));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("asdf"));
+    addInsertionField(query, "floating", constant(1246.2f));
+    addInsertionField(query, "number", constant(182341));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("qwer"));
+    addInsertionField(query, "floating", constant(-47.214f));
+    addInsertionField(query, "number", constant(123));
+    performInsertQuery(database, query);
+
+    destroyInsertQuery(query);
+
+    struct SelectQuery* selectQuery = createSelectQuery("test", NULL);
+    struct ScanInterface* scanner = performSelectQuery(database, selectQuery);
+
+    int count = 0;
+    while (next(scanner)) {
+        count++;
+    }
+    assert(count == 4);
+
+    destroySelectQuery(selectQuery);
+    destroyScanner(scanner);
+
+    struct DeleteQuery* deleteQuery = createDeleteQuery("test", NULL);
+    performDeleteQuery(database, deleteQuery);
+    destroyDeleteQuery(deleteQuery);
+
+    selectQuery = createSelectQuery("test", NULL);
+    scanner = performSelectQuery(database, selectQuery);
+
+    assert(next(scanner) == false);
+
+    destroySelectQuery(selectQuery);
+    destroyScanner(scanner);
+
+    closeDatabase(database);
+    
+    printf("Test successfully finished\n\n");
+}
+
+void testUpdateData() {
+    printf("Starting update test\n");
+    struct Database* database = openDatabase("database");
+    dropDatabase(database);
+
+    struct Schema* schema = createSchema("test");
+    addStringField(schema, "name", 30);
+    addIntField(schema, "number");
+    addFloatField(schema, "floating");
+
+    createTable(database, schema);
+    destroySchema(schema);
+
+    struct InsertQuery* query = createInsertQuery("test");
+
+    addInsertionField(query, "name", constant("abuabu"));
+    addInsertionField(query, "floating", constant(12.5f));
+    addInsertionField(query, "number", constant(123));
+    performInsertQuery(database, query);
+
+    destroyInsertQuery(query);
+
+    struct Predicate* predicate = createPredicate();
+    addCondition(predicate, "floating", constant(12.5f), EQUAL);
+    struct UpdateQuery* updateQuery = createUpdateQuery("test", "name", constant("Steeve"), predicate);
+    performUpdateQuery(database, updateQuery);
+    destroyUpdateQuery(updateQuery);
+
+    struct SelectQuery* selectQuery = createSelectQuery("test", NULL);
+    struct ScanInterface* scanner = performSelectQuery(database, selectQuery);
+
+    assert(next(scanner));
+    assert(strcmp(getString(scanner, "name").value, "Steeve") == 0);
+    assert(next(scanner) == false);
+
+    destroySelectQuery(selectQuery);
+    destroyScanner(scanner);
+
+    closeDatabase(database);
     printf("Test successfully finished\n\n");
 }

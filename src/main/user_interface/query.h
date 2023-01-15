@@ -28,7 +28,7 @@ struct UpdateQuery {
 struct SelectQuery* createSelectQuery(char* from, struct Predicate* predicate);
 struct InsertQuery* createInsertQuery(char* into);
 struct DeleteQuery* createDeleteQuery(char* from, struct Predicate* predicate);
-struct UpdateQuery* createUpdateQuery(char* table, char* field, struct Constant* value, struct Predicate* predicate);
+struct UpdateQuery* createUpdateQuery(char* table, char* field, struct Constant value, struct Predicate* predicate);
 
 void destroySelectQuery(struct SelectQuery* query);
 void destroyInsertQuery(struct InsertQuery* query);

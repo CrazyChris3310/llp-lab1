@@ -58,10 +58,16 @@ void destroyDeleteQuery(struct DeleteQuery* query) {
     free(query);
 }
 
-struct UpdateQuery* createUpdateQuery(char* table, char* field, struct Constant* value, struct Predicate* predicate) {
+struct UpdateQuery* createUpdateQuery(char* table, char* field, struct Constant value, struct Predicate* predicate) {
     struct UpdateQuery* query = malloc(sizeof(struct UpdateQuery));
     query->table = table;
-    query->condition = createCondition(field, *value, EQUAL);
+    query->condition = createCondition(field, value, EQUAL);
     query->predicate = predicate;
     return query;
+}
+
+void destroyUpdateQuery(struct UpdateQuery* query) {
+    destroyPredicate(query->predicate);
+    free(query->condition);
+    free(query);
 }

@@ -124,7 +124,7 @@ struct Constant __getFieldFromTableScanner(void* ptr, char* field) {
             constant.value.boolVal = *(bool*)data;
             break;
         case STRING:
-            constant.value.stringVal = ((struct String*)data)->value;
+            constant.value.stringVal = (char*)(data) + sizeof(size_t);
             break;
         default:
             break;

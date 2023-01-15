@@ -99,7 +99,9 @@ void performDeleteQuery(struct Database* database, struct DeleteQuery* query) {
     assert(!isNew);
 
     struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
-    scan = (struct ScanInterface*)createSelectScanner(scan, *query->predicate);
+    if (query->predicate != NULL) {
+        scan = (struct ScanInterface*)createSelectScanner(scan, *query->predicate);
+    }
 
     while (next(scan)) {
         deleteRecord(scan);

@@ -4,5 +4,8 @@ int main() {
     testCreateTable();
     testInsertAndReadData();
     testMultipleInsert();
-        // testSelectWithCondition();
+    testSelectWithCondition();
+    testDeleteData();
+    testDeleteAllData();
+    testUpdateData();
 }
