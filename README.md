@@ -7,10 +7,16 @@
 - CMake 3.16 и выше
 ###  Сборка
 
-
+Linux:
 ```
 cmake .
 make
+```
+
+Windows:
+```
+cmake .
+nmake
 ```
 
 ### Запуск
