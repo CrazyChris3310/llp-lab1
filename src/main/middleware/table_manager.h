@@ -28,5 +28,7 @@ void destroyTableManager(struct TableManager* tm);
 
 void createDatabaseTable(struct TableManager* tm, struct Schema* schema);
 struct Schema* findTableSchema(struct TableManager* tm, char* tableName);
+void dropDatabaseTable(struct TableManager* tm, char* tableName);
+void appendPagesToFreeList(struct CacheManager* cacheManager, int64_t blockId);
 
 #endif

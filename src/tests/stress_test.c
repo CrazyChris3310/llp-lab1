@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
+#include "file_io/file_manager.h"
 
 void insertManyData(struct Database* db, struct InsertQuery* query, size_t n) {
     for (int i = 0; i < n; i++) {
@@ -334,6 +335,102 @@ void hugeTestThatDoessEverything() {
     free(selects);
     free(deletes);
     free(updates);
+
+    printf("Test successfully finished\n");
+}
+
+struct Database {
+    struct FileManager* fileManager;
+};
+
+void testFileSizeAmongDeletions() {
+    printf("Testing file size\n");
+
+    size_t count = 21;
+    long* output = malloc(sizeof(long) * count * 2);
+
+    struct Database* db = openDatabase("database");
+    dropDatabase(db);
+    
+    struct Schema* schema = createSchema("table");
+    addFloatField(schema, "number");
+
+
+    struct InsertQuery* query = createInsertQuery("table");
+    addInsertionField(query, "number", constant(23.6f));
+
+    struct DeleteQuery* delete = createDeleteQuery("table", NULL);
+
+    for (int i = 0; i < count; ++i) {
+        printf("Iteration %d\n", i);
+        createTable(db, schema);
+        long position_start = getFileLength(db->fileManager);
+        insertManyData(db, query, 5000);
+        long position_end = getFileLength(db->fileManager);    
+        dropTable(db, "table");
+        output[i*2] = position_start;
+        output[i * 2 + 1] = position_end;
+    }
+
+    destroyInsertQuery(query);
+    destroyDeleteQuery(delete);
+    destroySchema(schema);
+
+    closeDatabase(db);
+
+    FILE* file = fopen("output.txt", "a");
+    fprintf(file, "\nfile_size\n");
+    for (int i = 0; i < count * 2; ++i) {
+        fprintf(file, "%ld,", output[i]);
+    }
+    fclose(file);
+    free(output);
+
+    printf("Test successfully finished\n");
+}
+
+void testFileSizeWithDeleteQuery() {
+    printf("Testing file size with delete\n");
+
+    size_t count = 21;
+    long* output = malloc(sizeof(long) * count * 2);
+
+    struct Database* db = openDatabase("database");
+    dropDatabase(db);
+    
+    struct Schema* schema = createSchema("table");
+    addFloatField(schema, "number");
+
+
+    struct InsertQuery* query = createInsertQuery("table");
+    addInsertionField(query, "number", constant(23.6f));
+
+    struct DeleteQuery* delete = createDeleteQuery("table", NULL);
+
+    for (int i = 0; i < count; ++i) {
+        printf("Iteration %d\n", i);
+        createTable(db, schema);
+        long position_start = getFileLength(db->fileManager);
+        insertManyData(db, query, 5000);
+        long position_end = getFileLength(db->fileManager);    
+        performDeleteQuery(db, delete);
+        output[i*2] = position_start;
+        output[i * 2 + 1] = position_end;
+    }
+
+    destroyInsertQuery(query);
+    destroyDeleteQuery(delete);
+    destroySchema(schema);
+
+    closeDatabase(db);
+
+    FILE* file = fopen("output.txt", "a");
+    fprintf(file, "\nfile_size_delete\n");
+    for (int i = 0; i < count * 2; ++i) {
+        fprintf(file, "%ld,", output[i]);
+    }
+    fclose(file);
+    free(output);
 
     printf("Test successfully finished\n");
 }

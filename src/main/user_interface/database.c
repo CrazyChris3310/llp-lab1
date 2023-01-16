@@ -39,6 +39,10 @@ void createTable(struct Database* database, struct Schema* schema) {
     createDatabaseTable(database->tableManager, schema);
 }
 
+void dropTable(struct Database* database, char* name) {
+    dropDatabaseTable(database->tableManager, name);
+}
+
 static void setTableFirstBlock(struct Database* database, char* tableName, size_t firstBlock) {
     struct TableScanner* tableScanner = createTableScanner(database->cacheManager, database->tableManager->tableOfTables, false, database->fileManager->header.tableOfTables.value);
         struct String tblName = (struct String){ .value = tableName, .lenght = strlen(tableName) };

@@ -194,7 +194,17 @@ static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurren
     struct PageHeader header;
     header.nextPage = (struct PossibleValue){ .exists = false };
 
-    size_t blockId = addNewBlock(scanner->cacheManager->fileManager, &header);
+    size_t blockId;
+    struct FileHeader* fileHeader = &scanner->cacheManager->fileManager->header;
+    if (!fileHeader->freePages.exists) {
+        blockId = addNewBlock(scanner->cacheManager->fileManager, &header);
+    } else {
+        blockId = fileHeader->freePages.value;
+        struct CachedPage* freePage = requestCachedPage(scanner->cacheManager, blockId);
+        fileHeader->freePages = freePage->page->header->nextPage;
+        freePage->page->header->nextPage = (struct PossibleValue){ .exists = false };
+        releaseCachedPage(scanner->cacheManager, freePage);
+    }
 
     if (scanner->pageRecord != NULL) {
         destroyPageRecord(scanner->pageRecord);

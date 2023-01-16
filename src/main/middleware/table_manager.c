@@ -44,8 +44,6 @@ static int64_t getNextTableId(struct TableManager* tm) {
     return tm->cacheManager->fileManager->header.next_table_id++;
 }
 
-// Need ID counter
-// TODO: need to show error when table already exists
 void createDatabaseTable(struct TableManager* tm, struct Schema* schema) {
     struct PossibleValue po = tm->cacheManager->fileManager->header.tableOfTables;
     struct TableScanner* tableScanner = createTableScanner(tm->cacheManager, tm->tableOfTables, !po.exists, po.value);
@@ -131,3 +129,32 @@ struct Schema* findTableSchema(struct TableManager* tm, char* tableName) {
     destroyScanner((struct ScanInterface*)colScanner);
     return schema;
 }
+
+void dropDatabaseTable(struct TableManager* tm, char* tableName) {
+    struct PossibleValue po = tm->cacheManager->fileManager->header.tableOfTables;
+    struct TableScanner* tableScanner = createTableScanner(tm->cacheManager, tm->tableOfTables, !po.exists, po.value);
+    int64_t tableId = -1;
+    int64_t firstPage = -1;
+    while (next((struct ScanInterface*)tableScanner)) {
+        if (strcmp(getString((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_TABLE_NAME_COLUMN).value, tableName) == 0) {
+            tableId = getInt((struct ScanInterface*)tableScanner, TABLE_OF_TABLES_ID_COLUMN);
+            firstPage = getInt((struct ScanInterface*)tableScanner, TABLE_FIRST_PAGE_COLUMN_NAME);
+            deleteRecord((struct ScanInterface*)tableScanner);
+        }
+    }
+    destroyScanner((struct ScanInterface*)tableScanner);
+
+    po = tm->cacheManager->fileManager->header.tableOfColumns;
+    struct TableScanner* colScanner = createTableScanner(tm->cacheManager, tm->columnTable, !po.exists, po.value);
+    while(next((struct ScanInterface*)colScanner)) {
+        if (getInt((struct ScanInterface*)colScanner, COLUMN_TABLE_TABLE_ID_COLUMN) == tableId) {
+            deleteRecord((struct ScanInterface*)colScanner);
+        }
+    }
+    destroyScanner((struct ScanInterface*)colScanner);
+
+    if (firstPage != -1) {
+        appendPagesToFreeList(tm->cacheManager, firstPage);
+    }
+}
+

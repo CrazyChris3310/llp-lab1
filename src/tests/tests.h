@@ -12,3 +12,5 @@ void testManySelections();
 void testDeleteManyData();
 void testUpdateManyData();
 void hugeTestThatDoessEverything();
+void testFileSizeAmongDeletions();
+void testFileSizeWithDeleteQuery();

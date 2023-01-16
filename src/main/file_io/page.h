@@ -10,10 +10,6 @@ struct PossibleValue {
 };
 
 struct PageHeader {
-    size_t tableId;
-    size_t count;
-    size_t upper;
-    size_t lower;
     struct PossibleValue nextPage;
 };
 

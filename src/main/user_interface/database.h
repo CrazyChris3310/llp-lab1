@@ -13,6 +13,7 @@ void closeDatabase(struct Database* db);
 void dropDatabase(struct Database* database);
 
 void createTable(struct Database* database, struct Schema* schema);
+void dropTable(struct Database* database, char* name);
 struct ScanInterface* performSelectQuery(struct Database* database, struct SelectQuery* query);
 void performInsertQuery(struct Database* database, struct InsertQuery* query);
 void performDeleteQuery(struct Database* database, struct DeleteQuery* query);

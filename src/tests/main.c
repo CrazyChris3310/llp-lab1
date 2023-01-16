@@ -12,9 +12,12 @@ int main() {
     testUpdateData();
     testJoinSelect();
 
-    // printf("\n\n------------------Stress tests------------------\n\n");
+    printf("\n\n------------------Stress tests------------------\n\n");
 
-    // fclose(fopen("output.txt", "w"));
+    fclose(fopen("output.txt", "w"));
+
+    testFileSizeWithDeleteQuery();
+    testFileSizeAmongDeletions();
 
     // // hugeTestThatDoessEverything();
 
