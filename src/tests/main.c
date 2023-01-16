@@ -19,10 +19,8 @@ int main() {
     testFileSizeWithDeleteQuery();
     testFileSizeAmongDeletions();
 
-    // // hugeTestThatDoessEverything();
-
-    // testManyInsertions();
-    // testManySelections();
-    // testDeleteManyData();
-    // testUpdateManyData();
+    testManyInsertions();
+    testManySelections();
+    testDeleteManyData();
+    testUpdateManyData();
 }

@@ -115,8 +115,6 @@ struct Constant __getFieldFromSelectScanner(void* ptr, char* field) {
     return getField(scanner->tableScanner, field);
 }
 
-// setters only for update
-
 void __setIntegerToSelectScanner(void* ptr, char* field, int64_t value) {
     struct SelectScanner* scanner = (struct SelectScanner*)ptr;
     setInt(scanner->tableScanner, field, value);

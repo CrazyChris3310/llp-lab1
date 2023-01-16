@@ -47,7 +47,6 @@ void destoryFileManager(struct FileManager* manager) {
     free(manager);
 }
 
-// handle errors
 int8_t readPage(struct FileManager* fm, size_t blockId, struct Page* page) {
     fseek(fm->file, sizeof(struct FileHeader) + blockId * fm->blockSize, SEEK_SET);
     size_t blocks_read = fread(page->data, fm->blockSize, 1, fm->file);

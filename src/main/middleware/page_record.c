@@ -13,17 +13,16 @@ struct PageRecord {
     size_t blockId;
     struct CacheManager* cacheManager;
     struct Schema* schema;
-    size_t id;
+    int64_t id;
 };
 
-static size_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, size_t recordId, struct String field);
+static int64_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, int64_t recordId, struct String field);
 
 struct PageRecord* createPageRecord(struct CacheManager* cm, struct Schema* schema, size_t blockId) {
     struct PageRecord* record = malloc(sizeof(struct PageRecord));
     record->blockId = blockId;
     record->schema = schema;
     record->cacheManager = cm;
-    // WTF???
     record->id = -1;
     return record;
 }
@@ -72,12 +71,11 @@ void* getFieldFromRecord(struct PageRecord* record, struct String field) {
     return result;
 }
 
-static size_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, size_t recordId, struct String field) {
+static int64_t calculateRecordFieldOffset(struct Page* page, struct Schema* schema, int64_t recordId, struct String field) {
     struct PossibleValue po = getFieldOffset(schema, field);
     if (po.exists) {
         return po.value + schema->slotSize * recordId;
     }
-    // FIXME:
     return -1;
 }
 

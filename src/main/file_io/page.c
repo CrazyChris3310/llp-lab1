@@ -6,7 +6,6 @@
 #include "util/my_string.h"
 #include "page.h"
 
-// maybe better to allocate page in a heap
 struct Page* allocatePage(size_t page_size) {
     struct Page* page = malloc(sizeof(struct Page));
     void* data = malloc(page_size);
