@@ -182,6 +182,8 @@ static void moveScannerToNextBlock(struct TableScanner* scanner) {
         scanner->pageRecord = NULL;
         scanner->blockId = 0;
     }
+
+    releaseCachedPage(scanner->cacheManager, page);
 }
 
 static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurrent) {
@@ -192,6 +194,10 @@ static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurren
     header.nextPage = (struct PossibleValue){ .exists = false };
 
     size_t blockId = addNewBlock(scanner->cacheManager->fileManager, &header);
+
+    if (scanner->pageRecord != NULL) {
+        destroyPageRecord(scanner->pageRecord);
+    }
 
     if (hasCurrent) {
         struct CachedPage* cachedPage = requestCachedPage(scanner->cacheManager, scanner->blockId);

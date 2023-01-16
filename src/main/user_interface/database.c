@@ -128,6 +128,7 @@ void performUpdateQuery(struct Database* database, struct UpdateQuery* query) {
 
 void dropDatabase(struct Database* database) {
     clearFile(database->fileManager);
+    clearCachedPages(database->cacheManager);
 }
 
 struct Schema* findTable(struct Database* database, char* tableName) {

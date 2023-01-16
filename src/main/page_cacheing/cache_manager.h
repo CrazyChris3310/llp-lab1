@@ -8,7 +8,6 @@ struct CachedPage {
     struct Page* page;
     struct PossibleValue blockId;
     size_t usesCount;
-    bool isNew;
 };
 
 struct CacheManager {
@@ -23,5 +22,6 @@ void destroyCacheManager(struct CacheManager* CacheManager);
 void flushAllPages(struct CacheManager* CacheManager);
 struct CachedPage* requestCachedPage(struct CacheManager* cm, size_t blockId);
 void releaseCachedPage(struct CacheManager* cm, struct CachedPage* CachedPage);
+void clearCachedPages(struct CacheManager* cacheManager);
 
 #endif 

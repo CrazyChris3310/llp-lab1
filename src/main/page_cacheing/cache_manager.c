@@ -7,7 +7,6 @@ struct CacheManager* createCacheManager(struct FileManager* fileManager, size_t 
     for (size_t i = 0; i < poolSize; i++) {
         cacheManager->pagePool[i].page = allocatePage(fileManager->blockSize);
         cacheManager->pagePool[i].usesCount = 0;
-        cacheManager->pagePool[i].isNew = true;
         cacheManager->pagePool[i].blockId = (struct PossibleValue) { .exists = false, .value = 0};
     }
     cacheManager->poolSize = poolSize;
@@ -23,6 +22,13 @@ void destroyCacheManager(struct CacheManager* cacheManager) {
     }
     free(cacheManager->pagePool);
     free(cacheManager);
+}
+
+void clearCachedPages(struct CacheManager* cacheManager) {
+    for (size_t i = 0; i < cacheManager->poolSize; ++i) {
+        cacheManager->pagePool[i].usesCount = 0;
+        cacheManager->pagePool[i].blockId = (struct PossibleValue) { .exists = false, .value = 0};
+    }
 }
 
 void flushAllPages(struct CacheManager* cacheManager) {

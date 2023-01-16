@@ -109,8 +109,8 @@ void setStringToRecord(struct PageRecord* record, struct String field, struct St
     releaseCachedPage(record->cacheManager, cachedPage);
 }
 
-static bool recordIsValid(struct PageRecord* record) {
-    return (record->id + 1) * record->schema->slotSize <= record->cacheManager->fileManager->blockSize - sizeof(struct PageHeader);
+static bool nextRecordIsValid(struct PageRecord* record) {
+    return (record->id + 1 + 1) * record->schema->slotSize <= record->cacheManager->fileManager->blockSize - sizeof(struct PageHeader);
 }
 
 static void setTakenFlag(struct PageRecord *record, bool value) {
@@ -127,14 +127,13 @@ static bool searchAfter(struct PageRecord* record, bool flag) {
     struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
 
     bool ret = false;
-    while (recordIsValid(record)) {
+    while (nextRecordIsValid(record)) {
         record->id += 1;
         bool res = getPageBool(cachedPage->page, record->id * record->schema->slotSize);
         if (res == flag) {
             ret = true;
             break;
         }
-        // record->id += 1;
     }
     releaseCachedPage(record->cacheManager, cachedPage); 
     return ret;
@@ -154,10 +153,9 @@ bool insertNextRecord(struct PageRecord* record) {
 
 void clearAllRecords(struct PageRecord* record) {
     struct CachedPage* cachedPage = requestCachedPage(record->cacheManager, record->blockId);
-    while (recordIsValid(record)) {
+    while (nextRecordIsValid(record)) {
         record->id += 1;
         setPageBool(cachedPage->page, record->id * record->schema->slotSize, EMPTY);
-        // record->id += 1;
     }
     releaseCachedPage(record->cacheManager, cachedPage); 
     record->id = -1;
