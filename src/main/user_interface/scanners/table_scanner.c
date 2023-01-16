@@ -115,10 +115,12 @@ struct Constant __getFieldFromTableScanner(void* ptr, char* field) {
     constant.type = type;
     switch (type) {
         case INT:
-            constant.value.intVal = *(int64_t*)data;
+            memcpy(&constant.value.intVal, data, sizeof(int64_t));
+            // constant.value.intVal = *(int64_t*)data;
             break;
         case FLOAT:
-            constant.value.floatVal = *(float*)data;
+            memcpy(&constant.value.floatVal, data, sizeof(float));
+            // constant.value.floatVal = *(float*)data;
             break;
         case BOOL:
             constant.value.boolVal = *(bool*)data;
