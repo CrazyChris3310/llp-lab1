@@ -46,24 +46,24 @@ make
 ### Структуры
 ```c
 struct FileHeader {
-    struct PossibleValue tableOfTables; \\ номер страницы, где лежит информация о всех созданных таблицах
-    struct PossibleValue tableOfColumns; \\ номер страницы, где лежит информация о колонках в созданных таблицах
-    struct PossibleValue freePages; \\ начало списка пустых страниц
-    size_t next_table_id; \\ id который нужно присвоить следуюзей таблице
+    struct PossibleValue tableOfTables; // номер страницы, где лежит информация о всех созданных таблицах
+    struct PossibleValue tableOfColumns; // номер страницы, где лежит информация о колонках в созданных таблицах
+    struct PossibleValue freePages; // начало списка пустых страниц
+    size_t next_table_id; // id который нужно присвоить следуюзей таблице
 };
 ```
 
 ```c
 struct PageHeader {
-    struct PossibleValue nextPage; \\ Номер следующей страницы, принадлежащей этой же таблице
+    struct PossibleValue nextPage; // Номер следующей страницы, принадлежащей этой же таблице
 };
 ```
 
 ```c
 struct Page {
-    struct PageHeader* header; \\ заголовок страницы
-    uint8_t* data; \\ Данные страницы, вклчюая заголовок
-    bool isDirty; \\ Флаг, была ли страница изменена после считывания
+    struct PageHeader* header; // заголовок страницы
+    uint8_t* data; // Данные страницы, вклчюая заголовок
+    bool isDirty; // Флаг, была ли страница изменена после считывания
 };
 ```
 
