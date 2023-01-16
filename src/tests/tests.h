@@ -5,7 +5,7 @@ void testMultipleInsert();
 void testDeleteData();
 void testDeleteAllData();
 void testUpdateData();
-
+void testJoinSelect();
 
 void testManyInsertions();
 void testManySelections();

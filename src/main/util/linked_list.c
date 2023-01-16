@@ -111,12 +111,16 @@ size_t getListSize(struct LinkedList* list) {
 
 struct ListIterator {
     struct LinkedList* list;
+    struct Node* prev;
+    struct Node* current;
     struct Node* next;
 };
 
 struct ListIterator* createListIterator(struct LinkedList* list) {
     struct ListIterator* iterator = malloc(sizeof(struct ListIterator));
     iterator->list = list;
+    iterator->prev = NULL;
+    iterator->current = NULL;
     if (list == NULL) {
         iterator->next = NULL;
     } else {
@@ -138,6 +142,24 @@ void* iteratorNext(struct ListIterator* iterator) {
         return NULL;
     }
     void* data = iterator->next->data;
+    if (iterator->current != NULL) {
+        iterator->prev = iterator->current;
+    }
+    iterator->current = iterator->next;
     iterator->next = iterator->next->next;
     return data;
+}
+
+void iteratorRemove(struct ListIterator* iterator) {
+    if (iterator->current == NULL) {
+        return;
+    }
+    if (iterator->prev == NULL) {
+        iterator->list->head = iterator->next;
+    } else {
+        iterator->prev->next = iterator->next;
+    }
+    iterator->list->freeFunction(iterator->current->data);
+    free(iterator->current);
+    iterator->current = NULL;
 }

@@ -1,11 +1,18 @@
 #include "user_interface/query.h"
 #include <stdlib.h>
 
+void emptyFreeFunction(void* ptr){}
+
 struct SelectQuery* createSelectQuery(char* from, struct Predicate* predicate) {
     struct SelectQuery* query = malloc(sizeof(struct SelectQuery));
+    query->joins = createClearableLinkedList(emptyFreeFunction);
     query->from = from;
     query->predicate = predicate;
     return query;
+}
+
+void joinTable(struct SelectQuery* query, char* table) {
+    addNode(query->joins, table);
 }
 
 void destroySelectQuery(struct SelectQuery* query) {
@@ -13,6 +20,7 @@ void destroySelectQuery(struct SelectQuery* query) {
         return;
     }
     destroyPredicate(query->predicate);
+    freeLinkedList(query->joins);
     free(query);
 }
 

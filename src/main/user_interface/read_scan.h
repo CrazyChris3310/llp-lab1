@@ -16,7 +16,7 @@ bool getBool(struct ScanInterface* scanner, char* field);
 struct String getString(struct ScanInterface* scanner, char* field);
 struct Constant getField(struct ScanInterface* scanner, char* field);
 
-// destroy given scanners and all inner scanners
+void reset(struct ScanInterface* scanner);
 void destroyScanner(struct ScanInterface* scanner);
 
 #endif

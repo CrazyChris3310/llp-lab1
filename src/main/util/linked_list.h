@@ -21,5 +21,6 @@ struct ListIterator* createListIterator(struct LinkedList* list);
 void freeListIterator(struct ListIterator* iterator);
 bool iteratorHasNext(struct ListIterator* iterator);
 void* iteratorNext(struct ListIterator* iterator);
+void iteratorRemove(struct ListIterator* iterator);
 
 #endif

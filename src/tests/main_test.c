@@ -384,3 +384,67 @@ void testUpdateData() {
     closeDatabase(database);
     printf("Test successfully finished\n\n");
 }
+
+void testJoinSelect() {
+    printf("Starting join test\n");
+    struct Database* database = openDatabase("database");
+    dropDatabase(database);
+
+    struct Schema* schema = createSchema("test");
+    addStringField(schema, "name", 30);
+    createTable(database, schema);
+    destroySchema(schema);
+
+    schema = createSchema("fruit");
+    addStringField(schema, "is_apple", 5);
+    addIntField(schema, "price");
+    createTable(database, schema);
+    destroySchema(schema);
+
+    struct InsertQuery* query = createInsertQuery("test");
+
+    addInsertionField(query, "name", constant("Viktor"));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "name", constant("Steeve"));
+    performInsertQuery(database, query);
+
+    destroyInsertQuery(query);
+
+    query = createInsertQuery("fruit");
+
+    addInsertionField(query, "is_apple", constant("True"));
+    addInsertionField(query, "price", constant(24));
+    performInsertQuery(database, query);
+
+    clearInsertQuery(query);
+    addInsertionField(query, "is_apple", constant("False"));
+    addInsertionField(query, "price", constant(11));
+
+    destroyInsertQuery(query);
+
+
+    struct Predicate* predicate = createPredicate();
+    addCondition(predicate, "price", constant(20), GREATER);
+    struct SelectQuery* selectQuery = createSelectQuery("test", predicate);
+    joinTable(selectQuery, "fruit");
+    struct ScanInterface* scanner = performSelectQuery(database, selectQuery);
+    
+    assert(next(scanner));
+    assert(strcmp(getString(scanner, "name").value, "Viktor") == 0);
+    assert(strcmp(getString(scanner, "is_apple").value, "True") == 0);
+    assert(getInt(scanner, "price") == 24);
+    assert(next(scanner));
+    assert(strcmp(getString(scanner, "name").value, "Steeve") == 0);
+    assert(strcmp(getString(scanner, "is_apple").value, "True") == 0);
+    assert(getInt(scanner, "price") == 24);
+    assert(next(scanner) == false);
+
+    destroySelectQuery(selectQuery);
+    destroyScanner(scanner);
+
+    closeDatabase(database);
+
+    printf("Test successfully finished\n");
+}

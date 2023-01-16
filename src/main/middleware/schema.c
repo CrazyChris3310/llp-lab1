@@ -26,7 +26,6 @@ void destroySchema(struct Schema* schema) {
     free(schema);
 }
 
-// FIXME:
 void addField(struct Schema* schema, char* name, enum DataType type, size_t len) {
     struct Field* field = malloc(sizeof(struct Field));
     size_t length = strlen(name);
@@ -71,44 +70,43 @@ struct LinkedList* getFieldList(struct Schema* schema) {
     return schema->fields;
 }
 
-struct PossibleValue getFieldOffset(struct Schema* schema, struct String field) {
-    struct PossibleValue result = { .exists=false };
+struct Field* schemaGetField(struct Schema* schema, char* field) {
+    struct Field* ret = NULL;
     struct ListIterator* iterator = createListIterator(schema->fields);
     while (iteratorHasNext(iterator)) {
         struct Field* current = (struct Field*)iteratorNext(iterator);
-        if (compareStrings(current->name, field) == 0) {
-            result = (struct PossibleValue){ .exists=true, .value=current->offset };
+        if (strcmp(current->name.value, field) == 0) {
+            ret = current;
             break;
         }
     }
     freeListIterator(iterator);
-    return result;
+    return ret;
+}
+
+struct PossibleValue getFieldOffset(struct Schema* schema, struct String field) {
+    struct Field* fieldPtr = schemaGetField(schema, field.value);
+    if (fieldPtr == NULL) {
+        return (struct PossibleValue){ .exists=false };
+    } else {
+        return (struct PossibleValue){ .exists=true, .value=fieldPtr->offset };
+    }
 }
 
 struct PossibleValue getFieldLength(struct Schema* schema, struct String field) {
-    struct PossibleValue result = { .exists=false };
-    struct ListIterator* iterator = createListIterator(schema->fields);
-    while (iteratorHasNext(iterator)) {
-        struct Field* current = (struct Field*)iteratorNext(iterator);
-        if (compareStrings(current->name, field) == 0) {
-            result = (struct PossibleValue){ .exists=true, .value=current->len };
-            break;
-        }
+    struct Field* fieldPtr = schemaGetField(schema, field.value);
+    if (fieldPtr == NULL) {
+        return (struct PossibleValue){ .exists=false };
+    } else {
+        return (struct PossibleValue){ .exists=true, .value=fieldPtr->len };
     }
-    freeListIterator(iterator);
-    return result;
 }
 
 enum DataType getFieldType(struct Schema* schema, struct String field) {
-    enum DataType result = -1;
-    struct ListIterator* iterator = createListIterator(schema->fields);
-    while (iteratorHasNext(iterator)) {
-        struct Field* current = (struct Field*)iteratorNext(iterator);
-        if (compareStrings(current->name, field) == 0) {
-            result = current->type;
-            break;
-        }
+    struct Field* fieldPtr = schemaGetField(schema, field.value);
+    if (fieldPtr == NULL) {
+        return -1;
+    } else {
+        return fieldPtr->type;
     }
-    freeListIterator(iterator);
-    return result;
 }

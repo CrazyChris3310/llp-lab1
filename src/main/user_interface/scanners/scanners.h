@@ -16,6 +16,7 @@ size_t getCurrentBlock(struct TableScanner* scanner);
 struct Predicate;
 
 struct SelectScanner* createSelectScanner(struct ScanInterface* scan, struct Predicate predicate);
+struct JoinScanner* createJoinScanner(struct ScanInterface* left, struct ScanInterface* right);
 
 
 #endif

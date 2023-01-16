@@ -12,6 +12,7 @@ struct ScanInterface {
     void(*insertNextRecord)(void* ptr);
     void(*deleteRecord)(void* ptr);
 
+    bool(*hasField)(void* ptr, char* field);
     int64_t(*getInt)(void* ptr, char* field);
     struct String(*getString)(void* ptr, char* filed);
     float(*getFloat)(void* ptr, char* field);
@@ -42,14 +43,6 @@ struct SelectScanner {
 
     struct ScanInterface* tableScanner;
     struct Predicate predicate;
-};
-
-struct ProjectScanner {
-    struct ScanInterface scanInterface;
-
-    struct ScanInterface* tableScanner;
-    char** fields;
-    size_t fieldCount;
 };
 
 struct JoinScanner {

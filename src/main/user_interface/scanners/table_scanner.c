@@ -19,6 +19,7 @@ void __setBoolToTableScanner(void* ptr, char* field, bool value);
 void __setStringToTableScanner(void* ptr, char* field, struct String value);
 void __setVarcharToTableScanner(void* ptr, char* field, char* value);
 
+static bool __tableScannerHasField(void* ptr, char* field);
 int64_t __getIntegerFromTableScanner(void* ptr, char* field);
 float __getFloatFromTableScanner(void* ptr, char* field);
 bool __getBoolFromTableScanner(void* ptr, char* field);
@@ -54,6 +55,7 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
     scanner->scanInterface.insertNextRecord = __insertRecordIntoTableScanner;
     scanner->scanInterface.deleteRecord = __deleteRecordFromTableScanner;
 
+    scanner->scanInterface.hasField = __tableScannerHasField;
     scanner->scanInterface.getBool = __getBoolFromTableScanner;
     scanner->scanInterface.getFloat = __getFloatFromTableScanner;
     scanner->scanInterface.getInt = __getIntegerFromTableScanner;
@@ -68,6 +70,7 @@ struct TableScanner* createTableScanner(struct CacheManager* cm, struct Schema* 
 
     scanner->scanInterface.destroy = __destroyTableScanner;
     scanner->scanInterface.reset = __resetTableScanner;
+
 
     return scanner;
 }
@@ -85,7 +88,10 @@ size_t getCurrentBlock(struct TableScanner* scanner) {
     return scanner->blockId;
 }
 
-// getter to get values of current record
+static bool __tableScannerHasField(void* ptr, char* field) {
+    struct TableScanner* scanner = (struct TableScanner*)ptr;
+    return schemaGetField(scanner->schema, field) != NULL;
+}
 
 int64_t __getIntegerFromTableScanner(void* ptr, char* field) {
     struct TableScanner* scanner = (struct TableScanner*)ptr;
@@ -116,11 +122,9 @@ struct Constant __getFieldFromTableScanner(void* ptr, char* field) {
     switch (type) {
         case INT:
             memcpy(&constant.value.intVal, data, sizeof(int64_t));
-            // constant.value.intVal = *(int64_t*)data;
             break;
         case FLOAT:
             memcpy(&constant.value.floatVal, data, sizeof(float));
-            // constant.value.floatVal = *(float*)data;
             break;
         case BOOL:
             constant.value.boolVal = *(bool*)data;
@@ -133,8 +137,6 @@ struct Constant __getFieldFromTableScanner(void* ptr, char* field) {
     }
     return constant;
 }
-
-// setters only for update
 
 void __setIntegerToTableScanner(void* ptr, char* field, int64_t value) {
     struct TableScanner* scanner = (struct TableScanner*)ptr;
@@ -190,9 +192,6 @@ static void moveScannerToNextBlock(struct TableScanner* scanner) {
 
 static size_t moveScannerToNewBlock(struct TableScanner* scanner, bool hasCurrent) {
     struct PageHeader header;
-    header.upper = sizeof(header);
-    header.lower = scanner->cacheManager->fileManager->blockSize;
-    header.count = 0;
     header.nextPage = (struct PossibleValue){ .exists = false };
 
     size_t blockId = addNewBlock(scanner->cacheManager->fileManager, &header);

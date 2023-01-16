@@ -6,6 +6,7 @@
 
 struct SelectQuery {
     char* from;
+    struct LinkedList* joins;
     struct Predicate* predicate;  
 };
 
@@ -37,5 +38,6 @@ void destroyUpdateQuery(struct UpdateQuery* query);
 
 void addInsertionField(struct InsertQuery* query, char* field, struct Constant value);
 void clearInsertQuery(struct InsertQuery* query);
+void joinTable(struct SelectQuery* query, char* table);
 
 #endif

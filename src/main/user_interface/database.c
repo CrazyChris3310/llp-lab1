@@ -59,6 +59,20 @@ struct ScanInterface* performSelectQuery(struct Database* database, struct Selec
     bool isNew = schema->startBlock == -1;
 
     struct ScanInterface* scan = (struct ScanInterface*)createTableScanner(database->cacheManager, schema, isNew, schema->startBlock);
+
+    struct ListIterator* iterator = createListIterator(query->joins);
+    while (iteratorHasNext(iterator)) {
+        char* join = (char*)iteratorNext(iterator);
+        iteratorRemove(iterator);
+        
+        struct SelectQuery* another = createSelectQuery(join, NULL);
+        struct ScanInterface* right = performSelectQuery(database, another);
+        scan = (struct ScanInterface*)createJoinScanner(scan, right);
+        destroySelectQuery(another);
+    }
+    freeListIterator(iterator);
+
+
     if (query->predicate != NULL) {
         scan = (struct ScanInterface*)createSelectScanner(scan, *query->predicate);
     }

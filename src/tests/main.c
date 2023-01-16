@@ -10,15 +10,16 @@ int main() {
     testDeleteData();
     testDeleteAllData();
     testUpdateData();
+    testJoinSelect();
 
-    printf("\n\n------------------Stress tests------------------\n\n");
+    // printf("\n\n------------------Stress tests------------------\n\n");
 
-    fclose(fopen("output.txt", "w"));
+    // fclose(fopen("output.txt", "w"));
 
-    // hugeTestThatDoessEverything();
+    // // hugeTestThatDoessEverything();
 
-    testManyInsertions();
-    testManySelections();
-    testDeleteManyData();
-    testUpdateManyData();
+    // testManyInsertions();
+    // testManySelections();
+    // testDeleteManyData();
+    // testUpdateManyData();
 }

@@ -80,3 +80,7 @@ void deleteRecord(struct ScanInterface* scanner) {
 void reset(struct ScanInterface* scanner) {
     scanner->reset(scanner);
 }
+
+bool hasField(struct ScanInterface* scanner, char* field) {
+    return scanner->hasField(scanner, field);
+}
